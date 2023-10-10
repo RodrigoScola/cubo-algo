@@ -13,37 +13,55 @@ const knex = Kcon(config);
 const server = express();
 
 server.use(express.json());
-async function getAdContext(ad: AdInfo) {
-  const itemPromise = await knex<AdContext>("ads")
-    .select("*")
-    .join("sku", function () {
-      this.on("ads.skuId", "=", "sku.id");
-    })
-    .where("ads.id", ad.id)
-    .join("products", function () {
-      this.on("products.id", "=", "ads.productId");
-    })
-    .first();
 
-  const imagesPromise = knex("sku_file").select("isMain", "url", "name").where("skuId", ad.skuId);
+class AdHandler {
+  async getContext(adInfo: AdInfo) {
+    const itemPromise = await knex<AdContext>("ads")
+      .select("*")
+      .join("sku", function () {
+        this.on("ads.skuId", "=", "sku.id");
+      })
+      .where("ads.id", adInfo.id)
+      .join("products", function () {
+        this.on("products.id", "=", "ads.productId");
+      })
+      .first();
 
-  const [item, images] = await Promise.all([itemPromise, imagesPromise]);
+    const imagesPromise = knex("sku_file").select("isMain", "url", "name").where("skuId", adInfo.skuId);
 
-  if (!item) return;
+    const [item, images] = await Promise.all([itemPromise, imagesPromise]);
 
-  item.images = images;
+    if (!item) return;
 
-  return item;
+    item.images = images;
+
+    return item;
+  }
+  getBestSku(ad: NewAdInfo) {
+    return knex.raw(`
+    select sum(si.totalQuantity) as totalQuantity, si.skuId, s.productId from sku_inventory as si left join sku as s on si.skuId = s.id where s.productId = ${ad.productId} group by skuId order by totalQuantity desc
+    `);
+  }
+}
+class Marketplace {
+  name: string;
+  ads: AdInfo[];
+  constructor(name: string) {
+    this.name = name;
+    this.ads = [];
+  }
 }
 
 class Algo {
   products: AdInfo[];
-  marketplaces: Map<string, number[]>;
+  marketplaces: Map<string, Marketplace>;
+  contextGetter: AdHandler;
   contexts: Map<number, AdContext>;
   constructor() {
     this.products = [];
     this.marketplaces = new Map();
     this.contexts = new Map();
+    this.contextGetter = new AdHandler();
   }
   addProduct(product: AdInfo) {
     if (!this.products.find((item) => item.id === product.id)) {
@@ -51,18 +69,19 @@ class Algo {
       this.addToMarketplace(product);
     }
   }
-  getBestSkuId(ad: NewAdInfo) {
-    return knex.raw(`
-    select sum(si.totalQuantity) as totalQuantity, si.skuId, s.productId from sku_inventory as si left join sku as s on si.skuId = s.id where s.productId = ${ad.productId} group by skuId order by totalQuantity desc
-    `);
+  async getBestSkuId(ad: NewAdInfo) {
+    const [items, _] = await this.contextGetter.getBestSku(ad);
+    return items.find((x) => x);
   }
-  async postProduct(product: NewAdInfo) {
-    const [items, _] = await this.getBestSkuId(product);
+  async postProduct(product: NewAdInfo): Promise<number> {
+    const item = await this.getBestSkuId(product);
 
-    return knex("ads").insert({
+    const adId = await knex("ads").insert({
       ...product,
-      skuId: items[0].skuId,
+      skuId: item.skuId,
     });
+
+    return adId[0];
   }
   reset() {
     return knex.delete("*").from("ads");
@@ -73,17 +92,17 @@ class Algo {
     return knex("ads").update("score", score).where("id", ad.id);
   }
   addToMarketplace(product: AdInfo) {
-    if (this.marketplaces.get(product.marketPlace)) {
-      const items = this.marketplaces.get(product.marketPlace) || [];
-      items.push(product.id);
-      this.marketplaces.set(product.marketPlace, items);
-      return;
-    }
-    this.marketplaces.set(product.marketPlace, [product.id]);
+    const marketplace = this.marketplaces.has(product.marketPlace)
+      ? this.marketplaces.get(product.marketPlace)
+      : new Marketplace(product.marketPlace);
+    console.log({
+      marketplace,
+    });
+    marketplace.ads.push(product);
+    this.marketplaces.set(product.marketPlace, marketplace);
   }
-  getByMarketplace(marketplace: string) {
-    const ids = this.marketplaces.get(marketplace);
-    // console.log(ids);
+  getByMarketplace(marketplace: Marketplace) {
+    const ids = this.marketplaces.get(marketplace.name)?.ads.map((item) => item.id);
     if (!ids) return [];
 
     return ids.map((id) => {
@@ -95,8 +114,10 @@ class Algo {
     const marketplaces = ["wecode"];
 
     const items = await Promise.all(
-      marketplaces.map((marketplace) => {
-        return knex("ads").select("*").where("marketPlace", marketplace).limit(3);
+      marketplaces.map((marketplaceName) => {
+        const marketplaceInstance = new Marketplace(marketplaceName);
+        this.marketplaces.set(marketplaceName, marketplaceInstance);
+        return knex("ads").select("*").where("marketPlace", marketplaceName).limit(3);
       })
     );
 
@@ -122,8 +143,7 @@ class Algo {
     if (this.contexts.has(baseAd.id)) {
       return this.contexts.get(baseAd.id);
     }
-    const context = await getAdContext(baseAd);
-    // console.log(context);
+    const context = await this.contextGetter.getContext(baseAd);
     if (!context) return;
     this.contexts.set(baseAd.id, context satisfies AdContext);
     return context;
@@ -132,10 +152,8 @@ class Algo {
 
 const algo = new Algo();
 
-algo.marketplaces.set("wecode", []);
-
 server.get("/", async (req, res) => {
-  const products = algo.getByMarketplace("wecode");
+  const products = algo.getByMarketplace(new Marketplace("wecode"));
 
   return res.json({
     data: {
