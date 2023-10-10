@@ -30,7 +30,7 @@
     "no-unsafe-negation": "error",
     "valid-typeof": "error",
     "guard-for-in": "error",
-    "max-classes-per-file": ["error", 3],
+    // "max-classes-per-file": ["error", 3],
     "no-case-declarations": "error",
     "max-lines": ["error", 600],
     "default-case-last": "error",

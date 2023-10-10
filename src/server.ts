@@ -15,7 +15,13 @@ const server = express();
 server.use(express.json());
 
 class AdHandler {
-  async getContext(adInfo: AdInfo) {
+  getContext(adInfo: AdInfo) {
+    return AdHandler.getContext(adInfo);
+  }
+  postProduct(info: NewAdInfo) {
+    return knex("ads").insert(info).returning("id");
+  }
+  static async getContext(adInfo: AdInfo) {
     const itemPromise = await knex<AdContext>("ads")
       .select("*")
       .join("sku", function () {
@@ -43,125 +49,151 @@ class AdHandler {
     `);
   }
 }
-class Marketplace {
+class AdInstance {
+  info: AdInfo;
+  context?: AdContext;
+  score: number;
+  constructor(info: AdInfo) {
+    this.info = info;
+    this.score = 0;
+  }
+  async getContext() {
+    if (!this.context) {
+      const context = await AdHandler.getContext(this.info);
+      this.context = context;
+    }
+    return Promise.resolve(this.context);
+  }
+  calculateScore(): Promise<number> {
+    this.score = this.info.price;
+    console.log(this.score);
+    return Promise.resolve(this.score);
+  }
+}
+
+export class Marketplace {
   name: string;
-  ads: AdInfo[];
+  private ads: AdInstance[];
+
   constructor(name: string) {
     this.name = name;
     this.ads = [];
   }
+  getCurrent() {
+    return this.ads.slice(0, 10);
+  }
+  async setup() {
+    const products = await knex("ads").select("*").where("marketPlace", this.name);
+    products.forEach((product) => {
+      const instance = new AdInstance(product);
+      this.ads.push(instance);
+      instance.calculateScore();
+    });
+    this.ads = this.ads.sort((a, b) => a.score - b.score);
+    return await Promise.all([
+      this.ads.map(async (ad) => {
+        return await ad.getContext();
+      }),
+      this.saveScores(),
+    ]);
+  }
+  async postProduct(info: AdInfo) {
+    const instance = new AdInstance(info);
+    this.ads.push(instance);
+    await this.calculateScores();
+  }
+  async calculateScores() {
+    return await Promise.all(this.ads.map((ad) => ad.calculateScore()));
+  }
+  async saveScores() {
+    console.log("saving scores");
+    return await Promise.all(
+      this.ads.map((ad) => {
+        return knex("ads").update({ score: ad.score }).where("id", ad.info.id);
+      })
+    );
+  }
+  async getAds(): Promise<(AdContext | undefined)[]> {
+    return await Promise.all(
+      this.ads.map((ad) => {
+        return ad.getContext();
+      })
+    );
+  }
+  reset() {
+    knex("ads").where("marketPlace", this.name).del();
+  }
+  addAd(ad: AdInfo) {
+    const instance = new AdInstance(ad);
+    this.ads.push(instance);
+    instance.calculateScore();
+  }
 }
 
 class Algo {
-  products: AdInfo[];
-  marketplaces: Map<string, Marketplace>;
-  contextGetter: AdHandler;
-  contexts: Map<number, AdContext>;
+  private marketplaces: Map<string, Marketplace>;
   constructor() {
-    this.products = [];
     this.marketplaces = new Map();
-    this.contexts = new Map();
-    this.contextGetter = new AdHandler();
-  }
-  addProduct(product: AdInfo) {
-    if (!this.products.find((item) => item.id === product.id)) {
-      this.products.push(product);
-      this.addToMarketplace(product);
-    }
-  }
-  async getBestSkuId(ad: NewAdInfo) {
-    const [items, _] = await this.contextGetter.getBestSku(ad);
-    return items.find((x) => x);
-  }
-  async postProduct(product: NewAdInfo): Promise<number> {
-    const item = await this.getBestSkuId(product);
-
-    const adId = await knex("ads").insert({
-      ...product,
-      skuId: item.skuId,
-    });
-
-    return adId[0];
   }
   reset() {
     return knex.delete("*").from("ads");
   }
-  calculateScore(ad: AdInfo) {
-    const score = ad.price * 2;
-
-    return knex("ads").update("score", score).where("id", ad.id);
+  getMarketPlace(name: string) {
+    return this.marketplaces.get(name);
   }
-  addToMarketplace(product: AdInfo) {
-    const marketplace = this.marketplaces.has(product.marketPlace)
-      ? this.marketplaces.get(product.marketPlace)
-      : new Marketplace(product.marketPlace);
-    console.log({
-      marketplace,
-    });
-    marketplace.ads.push(product);
-    this.marketplaces.set(product.marketPlace, marketplace);
-  }
-  getByMarketplace(marketplace: Marketplace) {
-    const ids = this.marketplaces.get(marketplace.name)?.ads.map((item) => item.id);
-    if (!ids) return [];
-
-    return ids.map((id) => {
-      return this.contexts.get(id);
-    });
-  }
-
   async setup() {
-    const marketplaces = ["wecode"];
-
-    const items = await Promise.all(
-      marketplaces.map((marketplaceName) => {
-        const marketplaceInstance = new Marketplace(marketplaceName);
-        this.marketplaces.set(marketplaceName, marketplaceInstance);
-        return knex("ads").select("*").where("marketPlace", marketplaceName).limit(3);
+    const marketPlaceNames = ["wecode"];
+    await Promise.all(
+      marketPlaceNames.map((marketplaceName) => {
+        const market = new Marketplace(marketplaceName);
+        this.marketplaces.set(marketplaceName, market);
+        return market.setup();
       })
     );
+  }
+  async postProduct(info: NewAdInfo) {
+    const handler = new AdHandler();
+    const [skus, _] = await handler.getBestSku(info);
+    console.log({});
 
-    items.forEach((marketplaceItems) => {
-      marketplaceItems.forEach((item) => {
-        this.addProduct(item);
-      });
+    return knex("ads")
+      .insert({
+        ...info,
+        skuId: skus[0].skuId,
+      })
+      .returning("id");
+  }
+  calculateScores() {
+    [...this.marketplaces.values()].forEach((market) => {
+      market.calculateScores();
     });
-    await Promise.all(
-      this.products.map(async (item) => {
-        return await this.getContext(item);
-      })
-    );
-  }
-  async calculateScores() {
-    await Promise.all(
-      this.products.map((item) => {
-        return this.calculateScore(item);
-      })
-    );
-  }
-  async getContext(baseAd: AdInfo): Promise<AdContext | undefined> {
-    if (this.contexts.has(baseAd.id)) {
-      return this.contexts.get(baseAd.id);
-    }
-    const context = await this.contextGetter.getContext(baseAd);
-    if (!context) return;
-    this.contexts.set(baseAd.id, context satisfies AdContext);
-    return context;
   }
 }
 
 const algo = new Algo();
-
-server.get("/", async (req, res) => {
-  const products = algo.getByMarketplace(new Marketplace("wecode"));
-
-  return res.json({
-    data: {
-      products,
-    },
+server.param("marketPlaceId", (req, res, next, marketplaceId) => {
+  if (!algo.getMarketPlace(marketplaceId)) {
+    throw new AppError({
+      description: `Marketplace ${marketplaceId} not found`,
+      httpCode: HTTPCodes.NOT_FOUND,
+    });
+  }
+  req.marketplace = algo.getMarketPlace(marketplaceId);
+  next();
+});
+server.get("/marketplace/:marketPlaceId", async (req, res) => {
+  const data = await req.marketplace?.getAds();
+  res.send({
+    data: data,
   });
 });
-server.post("/", async (req, res) => {
+server.post("/marketplace/:marketPlaceId", async (req, res) => {
+  if (!req.marketplace) {
+    throw new AppError({
+      description: "marketplace is required",
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
   if (!("products" in req.body)) {
     throw new AppError({
       description: "products is required",
@@ -175,19 +207,27 @@ server.post("/", async (req, res) => {
     });
   }
   const products = req.body.products as NewAdInfo[];
-  await Promise.all(
+
+  const ids = await Promise.all(
     products.map(async (product) => {
       return await algo.postProduct(product);
     })
   );
   return res.json({
     data: {
+      ids,
       products,
     },
   });
 });
 server.get("/calculateScores", (req, res) => {
   algo.calculateScores();
+  return res.json({
+    message: "done",
+  });
+});
+server.get("/reset", async (req, res) => {
+  await algo.reset();
   return res.json({
     message: "done",
   });
