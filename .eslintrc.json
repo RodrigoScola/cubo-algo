@@ -1,0 +1,44 @@
+{
+  "env": {
+    "es2021": true,
+    "node": true
+  },
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "no-await-in-loop": "error",
+    // "class-methods-use-this": ["warn", { "enforceForClassFields": true }],
+    "linebreak-style": ["error", "windows"],
+    "max-depth": ["warn", 3],
+    "no-nested-ternary": "error",
+    "no-useless-constructor": "error",
+    "no-else-return": "error",
+    "eqeqeq": "error",
+    "require-await": "error",
+    "no-throw-literal": "error",
+    "no-var": "warn",
+    "no-async-promise-executor": "error",
+    "no-class-assign": "error",
+    "no-cond-assign": "error",
+    "no-fallthrough": "error",
+    "no-sparse-arrays": "error",
+    "no-unsafe-negation": "error",
+    "valid-typeof": "error",
+    "guard-for-in": "error",
+    "max-classes-per-file": ["error", 3],
+    "no-case-declarations": "error",
+    "max-lines": ["error", 600],
+    "default-case-last": "error",
+    "no-sequences": "error",
+    "block-spacing": "error",
+    "padding-line-between-statements": ["error", { "blankLine": "always", "prev": ["case", "default"], "next": "*" }],
+    "yoda": "error",
+    "prefer-const": "error",
+    "max-statements-per-line": ["error", { "max": 2 }]
+  }
+}
