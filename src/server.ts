@@ -8,6 +8,10 @@ import { AdInfo, NewAdInfo } from "./types/types";
 const config: Knex.Config = {
   client: "mysql2",
   connection: process.env.DATABASE_URL || "",
+  pool: {
+    min: 0,
+    max: 10,
+  },
 };
 export const connection = Kcon(config);
 
