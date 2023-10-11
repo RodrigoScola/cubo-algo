@@ -10,7 +10,7 @@ export class Algo {
   }
   static reset() {
     return Promise.all(
-      [...Algo.marketplaces].map(([_, marketplace], k) => {
+      [...Algo.marketplaces].map(([_, marketplace]) => {
         return marketplace.reset();
       })
     );

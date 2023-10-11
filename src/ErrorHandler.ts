@@ -10,6 +10,7 @@ export enum HTTPCodes {
   REFUSED = 418,
   NOT_FOUND = 404,
   INTERNAL_SERVER_ERROR = 500,
+  NOT_IMPLEMENTED = 501,
 }
 
 export abstract class ErrorHandler {

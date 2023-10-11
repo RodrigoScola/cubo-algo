@@ -86,7 +86,7 @@ export class Marketplace {
     return await Promise.all([this.getAdsContext(), this.saveScores()]);
   }
   async postProduct(info: NewAdInfo) {
-    const [items, _] = await AdHandler.getBestSku(info);
+    const [items] = await AdHandler.getBestSku(info);
 
     return AdHandler.postProduct({
       ...info,
@@ -117,7 +117,7 @@ export class Marketplace {
     );
   }
   getAds(): AdContext[] {
-    return this.ads.reduce((acc, item) => {
+    return this.ads.reduce((acc: AdContext[], item) => {
       if (item.inRotation && item.context) {
         acc.push(item.context);
       }

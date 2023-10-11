@@ -32,6 +32,14 @@
     "guard-for-in": "error",
     // "max-classes-per-file": ["error", 3],
     "no-case-declarations": "error",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_", // ignore function arguments starting with underscore
+        "varsIgnorePattern": "^_", // ignore variable assignments starting with underscore
+        "destructuredArrayIgnorePattern": "^_"
+      }
+    ],
     "max-lines": ["error", 600],
     "default-case-last": "error",
     "no-sequences": "error",

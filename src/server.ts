@@ -26,10 +26,7 @@ server.use(["/ads", "/testing"], (req, _, next) => {
   }
 
   if (!marketplaceId || typeof marketplaceId !== "string") {
-    throw new AppError({
-      description: "marketplace is invalid",
-      httpCode: HTTPCodes.BAD_REQUEST,
-    });
+    throw new AppError({ description: "marketplace is invalid", httpCode: HTTPCodes.BAD_REQUEST });
   }
 
   if (!Algo.getMarketPlace(marketplaceId)) {
@@ -68,11 +65,14 @@ server.post("/ads", async (req, res) => {
       return await marketplace.postProduct(product);
     })
   );
+  const itemIds = ids[0] as unknown as number[];
 
-  const items = await Promise.all(ids[0].map((id: number) => connection("ads").select("*").where("id", id).first()));
+  const items = await Promise.all(itemIds.map((id) => connection("ads").select("*").where("id", id).first()));
 
-  items.forEach((item: AdInfo) => {
-    marketplace.addAd(item);
+  items.forEach((item: AdInfo | undefined) => {
+    if (item) {
+      marketplace.addAd(item);
+    }
   });
 
   return res.json({
