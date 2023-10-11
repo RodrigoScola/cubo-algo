@@ -7,7 +7,7 @@ import { AdInfo, NewAdInfo } from "./types/types";
 
 const config: Knex.Config = {
   client: "mysql2",
-  connection: DATABASE_URL,
+  connection: process.env.DATABASE_URL || DATABASE_URL,
 };
 export const connection = Kcon(config);
 
