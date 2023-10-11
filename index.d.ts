@@ -1,4 +1,4 @@
-import { Marketplace } from "./src/server";
+import { Marketplace } from "./src/marketplace";
 
 // to make the file a module and avoid the TypeScript error
 export {};

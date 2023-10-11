@@ -3,6 +3,7 @@ export const NewAdInfoObject = {
   sellerId: 0,
   productId: 0,
   isActive: 0,
+  skuId: 0,
   score: 0,
   price: 0,
 };
