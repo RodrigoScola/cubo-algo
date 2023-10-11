@@ -9,7 +9,7 @@ const config: Knex.Config = {
   client: "mysql2",
   connection: process.env.DATABASE_URL || DATABASE_URL,
 };
-export const connection = Kcon(config);
+export let connection: Kcon.Knex<any, unknown[]>;
 
 const server = express();
 
@@ -136,6 +136,7 @@ setInterval(() => {
 
 server.listen(process.env.PORT, async () => {
   console.clear();
+  console.log(`Database connection on ${process.env.DATABASE_URL}`);
   await Algo.setup();
   Algo.start();
   console.log(`SERVER WORKING ON PORT ${process.env.PORT}`);
