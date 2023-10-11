@@ -28,14 +28,14 @@ server.use(["/ads", "/testing"], (req, _, next) => {
   if (!marketplaceId || typeof marketplaceId !== "string") {
     throw new AppError({ description: "marketplace is invalid", httpCode: HTTPCodes.BAD_REQUEST });
   }
-
-  if (!Algo.getMarketPlace(marketplaceId)) {
+  const marketplace = Algo.getMarketPlace(marketplaceId);
+  if (!marketplace) {
     throw new AppError({
       description: `Marketplace ${marketplaceId} not found`,
       httpCode: HTTPCodes.NOT_FOUND,
     });
   }
-  req.marketplace = Algo.getMarketPlace(marketplaceId);
+  req.marketplace = marketplace;
   next();
 });
 
