@@ -53,10 +53,10 @@ class AdInstance {
     }
     const context = await AdHandler.getContext(this.info);
 
-    this.currentContext = {
+    return (this.currentContext = {
       ...context,
       score: this.score,
-    } as AdContext;
+    } as AdContext);
   }
   calculateScore(): number {
     this.scoring.add(this.info.price);
