@@ -20,7 +20,7 @@ const ErrorHandler_1 = require("./ErrorHandler");
 const constants_1 = require("./constants");
 const config = {
     client: "mysql2",
-    connection: constants_1.DATABASE_URL,
+    connection: process.env.DATABASE_URL || "",
 };
 exports.connection = (0, knex_1.knex)(config);
 const server = (0, express_1.default)();
