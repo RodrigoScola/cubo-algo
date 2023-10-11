@@ -9,9 +9,11 @@ export class Algo {
     return this.marketplaces.get(name);
   }
   static reset() {
-    Algo.marketplaces.forEach((market) => {
-      market.reset();
-    });
+    return Promise.all(
+      [...Algo.marketplaces].map(([_, marketplace], k) => {
+        return marketplace.reset();
+      })
+    );
   }
   static async setup() {
     const marketPlaceNames = ["wecode"];
@@ -22,6 +24,16 @@ export class Algo {
         return market.setup();
       })
     );
+  }
+  static start() {
+    this.marketplaces.forEach((marketplace) => {
+      marketplace.start();
+    });
+  }
+  static refresh() {
+    Algo.marketplaces.forEach((market) => {
+      market.refresh();
+    });
   }
   static calculateScores() {
     Algo.marketplaces.forEach((market) => {

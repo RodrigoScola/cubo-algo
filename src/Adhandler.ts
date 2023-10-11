@@ -15,6 +15,7 @@ export class AdHandler {
         this.on("ads.skuId", "=", "sku.id");
       })
       .where("ads.id", adInfo.id)
+      .andWhere("ads.productId", adInfo.productId)
       .join("products", function () {
         this.on("products.id", "=", "ads.productId");
       })

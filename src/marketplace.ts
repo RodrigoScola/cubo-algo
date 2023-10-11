@@ -2,50 +2,88 @@ import { AdHandler } from "./Adhandler";
 import { connection } from "./server";
 import { AdContext, AdInfo, NewAdInfo } from "./types/types";
 
-class AdInstance {
-  info: AdInfo;
-  context?: AdContext;
+class Scoring {
+  private numbers: number[];
   score: number;
-  constructor(info: AdInfo) {
-    this.info = info;
+  constructor() {
+    this.numbers = [];
     this.score = 0;
   }
-  async getContext() {
-    if (!this.context) {
-      const context = await AdHandler.getContext(this.info);
-      this.context = context;
-    }
-    return Promise.resolve(this.context);
+  add(num: number) {
+    this.numbers.push(num);
   }
-  calculateScore(): Promise<number> {
-    this.score = this.info.price;
-    console.log(this.score);
-    return Promise.resolve(this.score);
+  calculate() {
+    let result = 0;
+
+    this.numbers.forEach((number) => {
+      result += number;
+    });
+    return (this.score = result);
+  }
+}
+
+class AdInstance {
+  info: AdInfo;
+  private currentContext?: AdContext;
+  scoring: Scoring;
+  inRotation: boolean;
+
+  constructor(info: AdInfo) {
+    this.info = info;
+    this.scoring = new Scoring();
+    this.inRotation = false;
+  }
+
+  get score() {
+    return this.scoring.score;
+  }
+
+  get context() {
+    if (!this.currentContext) {
+      return undefined;
+    }
+    return {
+      ...this.currentContext,
+      score: this.score,
+    };
+  }
+  async getContext() {
+    if (this.context) {
+      return Promise.resolve(this.context);
+    }
+    const context = await AdHandler.getContext(this.info);
+
+    this.currentContext = {
+      ...context,
+      score: this.score,
+    } as AdContext;
+  }
+  calculateScore(): number {
+    this.scoring.add(this.info.price);
+    this.scoring.calculate();
+    return this.scoring.score;
   }
 }
 
 export class Marketplace {
   name: string;
   private ads: AdInstance[];
-
+  private readonly totalAdsPerBatch = 3;
   constructor(name: string) {
     this.name = name;
     this.ads = [];
   }
+  getProducts() {
+    return connection("ads").select("*").where("marketPlace", this.name);
+  }
   async setup() {
-    const products = await connection("ads").select("*").where("marketPlace", this.name);
+    const products = await this.getProducts();
     products.forEach((product) => {
-      const instance = new AdInstance(product);
-      this.ads.push(instance);
-      instance.calculateScore();
+      this.addAd(product);
     });
-    this.ads = this.ads.sort((a, b) => a.score - b.score);
-    return await Promise.all([
-      this.ads.map(async (ad) => {
-        return await ad.getContext();
-      }),
-      this.saveScores(),
-    ]);
+    this.sortScores();
+    this.calculateScores();
+    return await Promise.all([this.getAdsContext(), this.saveScores()]);
   }
   async postProduct(info: NewAdInfo) {
     const [items, _] = await AdHandler.getBestSku(info);
@@ -56,18 +94,37 @@ export class Marketplace {
       skuId: items[0].skuId satisfies number,
     });
   }
-  async calculateScores() {
-    return await Promise.all(this.ads.map((ad) => ad.calculateScore()));
+  sortScores() {
+    this.ads = this.ads.sort((a, b) => b.score - a.score);
+  }
+  start() {
+    console.log("starting marketplace");
+    this.ads.forEach((ad, i) => {
+      if (i < this.totalAdsPerBatch) {
+        ad.inRotation = true;
+      }
+    });
+  }
+  calculateScores() {
+    this.ads.forEach((ad) => ad.calculateScore());
+    this.sortScores();
   }
   async saveScores() {
-    console.log("saving scores");
     return await Promise.all(
       this.ads.map((ad) => {
         return connection("ads").update({ score: ad.score }).where("id", ad.info.id);
       })
     );
   }
-  async getAds(): Promise<(AdContext | undefined)[]> {
+  getAds(): AdContext[] {
+    return this.ads.reduce((acc, item) => {
+      if (item.inRotation && item.context) {
+        acc.push(item.context);
+      }
+      return acc;
+    }, []);
+  }
+  private async getAdsContext(): Promise<(AdContext | undefined)[]> {
     return await Promise.all(
       this.ads.map((ad) => {
         return ad.getContext();
@@ -75,11 +132,17 @@ export class Marketplace {
     );
   }
   reset() {
-    connection("ads").where("marketPlace", this.name).del();
+    this.ads = [];
+    return connection("ads").update({ score: 0 }).where("marketPlace", this.name);
   }
+  refresh() {
+    this.calculateScores();
+  }
+
   addAd(ad: AdInfo) {
+    console.log("adding ad");
     const instance = new AdInstance(ad);
     this.ads.push(instance);
-    instance.calculateScore();
+    return instance;
   }
 }

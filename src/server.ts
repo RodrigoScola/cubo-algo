@@ -2,20 +2,36 @@ import express, { ErrorRequestHandler, Request, Response } from "express";
 import { knex as Kcon, Knex } from "knex";
 import { Algo } from "./Algo";
 import { AppError, ErrorHandler, HTTPCodes } from "./ErrorHandler";
+import { DATABASE_URL, __DEV__ } from "./constants";
 import { AdInfo, NewAdInfo } from "./types/types";
-require("dotenv").config();
 
 const config: Knex.Config = {
   client: "mysql2",
-  connection: process.env.DATABASE_URL || "",
+  connection: DATABASE_URL,
 };
 export const connection = Kcon(config);
 
 const server = express();
 
 server.use(express.json());
+server.use(express.urlencoded({ extended: true }));
+server.set("view engine", "ejs");
+server.set("views", __dirname + "/views");
 
-server.param("marketPlaceId", (req, res, next, marketplaceId) => {
+server.use(["/ads", "/testing"], (req, _, next) => {
+  let marketplaceId = req.headers["marketplace"] || req.query["marketplace"] || req.body["marketplace"];
+
+  if (__DEV__) {
+    marketplaceId = "wecode";
+  }
+
+  if (!marketplaceId || typeof marketplaceId !== "string") {
+    throw new AppError({
+      description: "marketplace is invalid",
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
+
   if (!Algo.getMarketPlace(marketplaceId)) {
     throw new AppError({
       description: `Marketplace ${marketplaceId} not found`,
@@ -25,13 +41,20 @@ server.param("marketPlaceId", (req, res, next, marketplaceId) => {
   req.marketplace = Algo.getMarketPlace(marketplaceId);
   next();
 });
-server.get("/marketplace/:marketPlaceId", async (req, res) => {
-  const data = await req.marketplace?.getAds();
+
+server.get("/ads", (req, res) => {
+  const data = req.marketplace?.getAds();
   res.send({
     data: data,
   });
 });
-server.post("/marketplace/:marketPlaceId", async (req, res) => {
+server.get("/testing/ads", (req, res) => {
+  const data = req.marketplace?.getAds();
+
+  res.render("home", { data: { products: data } });
+});
+
+server.post("/ads", async (req, res) => {
   const marketplace = req.marketplace;
 
   if (!marketplace) throw new AppError({ description: "marketplace is required", httpCode: HTTPCodes.BAD_REQUEST });
@@ -59,16 +82,44 @@ server.post("/marketplace/:marketPlaceId", async (req, res) => {
     },
   });
 });
-server.get("/calculateScores", (req, res) => {
-  Algo.calculateScores();
-  return res.json({
-    message: "done",
+
+server.get("/testing/calculateScores", async (req, res) => {
+  const marketplace = req.marketplace;
+  if (!marketplace) {
+    throw new AppError({
+      description: "invalid Marketplace Id",
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
+
+  marketplace.calculateScores();
+  marketplace.sortScores();
+
+  const [ads] = await Promise.all([marketplace.getAds(), marketplace.saveScores()]);
+
+  return res.render("home", {
+    data: {
+      products: ads,
+    },
   });
 });
-server.get("/reset", (_, res) => {
-  Algo.reset();
-  return res.json({
-    message: "done",
+
+server.get("/testing/reset", async (req, res) => {
+  const marketplace = req.marketplace;
+  if (!marketplace) {
+    throw new AppError({
+      description: "invalid Marketplace Id",
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
+  await marketplace.reset();
+  await marketplace.setup();
+  marketplace.start();
+  const ads = marketplace.getAds();
+  return res.render("home", {
+    data: {
+      products: ads,
+    },
   });
 });
 
@@ -76,10 +127,16 @@ server.get("/reset", (_, res) => {
 const EFunction: ErrorRequestHandler = (err: Error, __: Request, res: Response, _next) => {
   ErrorHandler.handle(err, res);
 };
+
 server.use(EFunction);
+
+setInterval(() => {
+  Algo.refresh();
+}, 1000);
 
 server.listen(process.env.PORT, async () => {
   console.clear();
   await Algo.setup();
+  Algo.start();
   console.log(`SERVER WORKING ON PORT ${process.env.PORT}`);
 });
