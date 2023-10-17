@@ -29,17 +29,14 @@ server.use(express.urlencoded({ extended: true }));
 server.set("view engine", "ejs");
 server.set("views", __dirname + "/views");
 
-server.use(["/ads", "/testing"], (req, _, next) => {
-  let marketplaceId = req.headers["marketplace"] || req.query["marketplace"] || req.body["marketplace"];
+server.use(["/ads", "/testing"], async (req, _, next) => {
+  const marketplaceName = req.headers["marketplace"];
+  const id = 1;
 
   if (__DEV__) {
-    marketplaceId = 1;
   }
 
-  if (!marketplaceId || typeof marketplaceId !== "number") {
-    throw new AppError({ description: "marketplace is invalid", httpCode: HTTPCodes.BAD_REQUEST });
-  }
-  const marketplace = Algo.getMarketPlace(marketplaceId);
+  const marketplace = Algo.getMarketPlace(id);
   if (!marketplace) {
     throw new AppError({
       description: `Marketplace ${marketplaceId} not found`,
