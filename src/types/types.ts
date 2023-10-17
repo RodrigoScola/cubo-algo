@@ -2,6 +2,7 @@ export const NewAdInfoObject = {
   marketplaceId: 3,
   price: 300,
   productId: 3,
+  adType: "",
 };
 
 export const AdInfoObject = {
@@ -18,10 +19,14 @@ export const MarketplaceObj = {
 };
 export type Marketplace = typeof MarketplaceObj;
 
-export type AdInfo = typeof AdInfoObject;
-export type NewAdInfo = typeof NewAdInfoObject;
+export type AdInfo = typeof AdInfoObject & {
+  adType: "product" | "banner";
+};
+export type NewAdInfo = typeof NewAdInfoObject & {
+  adType: "product" | "banner";
+};
 
-export const UpdatingAdInfoObject: Partial<Omit<typeof AdInfoObject, "id">> = Object.entries(NewAdInfoObject).reduce(
+export const UpdatingAdInfoObject: Partial<Omit<AdInfo, "id">> = Object.entries(NewAdInfoObject).reduce(
   (accumulator, [key, value]) => {
     if (key === "id") {
       return accumulator;
@@ -32,7 +37,7 @@ export const UpdatingAdInfoObject: Partial<Omit<typeof AdInfoObject, "id">> = Ob
 
     return accumulator;
   },
-  {} as Partial<Omit<typeof AdInfoObject, "id">>
+  {} as Partial<Omit<AdInfo, "id">>
 );
 
 export type UpdatingAdInfo = typeof UpdatingAdInfoObject;

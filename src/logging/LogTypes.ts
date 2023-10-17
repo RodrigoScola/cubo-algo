@@ -1,6 +1,16 @@
+import { SETTINGS_FLAGS } from "../Algo";
+import { AdInstance } from "../marketplace";
+
 export class ViewLogType {
-  log(arg: any) {
-    console.log(arg);
+  private viewWeight: number;
+
+  constructor(viewWeight: number) {
+    this.viewWeight = viewWeight;
+  }
+  log(arg: AdInstance) {
+    arg.addScore(this.viewWeight);
+    arg.properties.views++;
+    console.log(arg.context?.title, "was viewed by a user.");
   }
 }
 
@@ -9,7 +19,7 @@ export const LogTypes = {
 };
 class LogFactory {
   getLog(type: keyof typeof LogTypes) {
-    return new LogTypes[type]();
+    return new LogTypes[type](SETTINGS_FLAGS.viewWeight);
   }
 }
 export const logFactory = new LogFactory();

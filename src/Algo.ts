@@ -1,5 +1,11 @@
 import { Marketplace } from "./marketplace";
 
+export const SETTINGS_FLAGS = {
+  viewWeight: 1,
+  countViews: true,
+  exponentialBackoff: true,
+};
+
 export class Algo {
   private static marketplaces: Map<number, Marketplace> = new Map();
   constructor() {

@@ -1,0 +1,26 @@
+<div>
+  <h3>
+    Settings
+  </h3>
+  <% const countViews = algo.settingsFlags.countViews  %>
+  <% if(countViews) { %>
+  <div>
+    Count Views <input hx-trigger="change" type="checkbox" checked hx-put="/testing/ads/settings/?setting=countViews" name="setting" value="countViews" />
+  </div>
+  <% } else { %>
+  <div>
+    Count Views <input hx-trigger="change" type="checkbox" hx-put="/testing/ads/settings/?setting=countViews" name="setting" value="countViews" />
+  </div>
+  <% } %>
+  <% const exponentialBackoff = algo.settingsFlags.exponentialBackoff %>
+  <% console.log(algo.settingsFlags) %>
+  <% if(exponentialBackoff) { %>
+  <div>
+    Exponential Backoff <input hx-trigger="change" type="checkbox" checked hx-put="/testing/ads/settings/?setting=exponentialBackoff" name="setting" value="exponentialBackoff" />
+  </div>
+  <% } else { %>
+  <div>
+    Exponential Backoff <input hx-trigger="change" type="checkbox" hx-put="/testing/ads/settings/?setting=exponentialBackoff" name="setting" value="exponentialBackoff" />
+  </div>
+  <% } %>
+</div>

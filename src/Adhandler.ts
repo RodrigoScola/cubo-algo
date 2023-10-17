@@ -14,10 +14,10 @@ export class AdHandler {
     );
   }
   static async postProduct(info: NewAdInfo) {
-    const [skuIds] = await AdHandler.getBestSku(info);
+    const sku = await AdHandler.getBestSku(info);
     return connection("ads").insert({
       ...info,
-      skuId: skuIds[0].skuId,
+      skuId: sku,
     });
   }
   static async getContext(adInfo: AdInfo) {
@@ -43,9 +43,11 @@ export class AdHandler {
 
     return item;
   }
-  static getBestSku(ad: NewAdInfo) {
-    return connection.raw(`
+  static async getBestSku(ad: NewAdInfo): Promise<number | undefined> {
+    const [skus] = await connection.raw(`
     select sum(si.totalQuantity) as totalQuantity, si.skuId, s.productId from sku_inventory as si left join sku as s on si.skuId = s.id where s.productId = ${ad.productId} group by skuId order by totalQuantity desc
     `);
+    const skuId = skus[0].skuId;
+    return skuId;
   }
 }

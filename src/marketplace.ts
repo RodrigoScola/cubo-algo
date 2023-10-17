@@ -1,11 +1,19 @@
 import { AdHandler } from "./Adhandler";
+import { SETTINGS_FLAGS } from "./Algo";
 import { connection } from "./server";
 import { AdContext, AdInfo } from "./types/types";
 
 class MarketplaceScoring {
   calculateScore(instances: AdInstance[]) {
-    instances.forEach((instance) => instance.calculateScore());
+    const max = instances[0];
+    instances.forEach((instance) => {
+      if (SETTINGS_FLAGS.exponentialBackoff) {
+        instance.addScore(Math.floor(Math.random() * instance.info.price) % max?.score);
+      }
+      instance.calculateScore();
+    });
   }
+
   sortScores(ads: AdInstance[]) {
     return ads.sort((a, b) => b.score - a.score);
   }
@@ -14,20 +22,27 @@ class MarketplaceScoring {
 class Scoring {
   private numbers: number[];
   score: number;
+  private readonly baseScore;
   constructor(initialScore: number) {
     this.numbers = [initialScore];
     this.score = initialScore;
+    this.baseScore = initialScore;
   }
   add(num: number) {
     this.numbers.push(num);
   }
   calculate() {
-    let result = 0;
+    this.score = 0;
 
     this.numbers.forEach((number) => {
-      result += number;
+      this.score += number;
     });
-    return (this.score = result);
+
+    return this.score;
+  }
+  reset() {
+    this.numbers = [];
+    this.score = this.baseScore;
   }
 }
 
@@ -36,6 +51,9 @@ export class AdInstance {
   private currentContext?: AdContext;
   scoring: Scoring;
   type: "product" | "banner";
+  properties: {
+    views: number;
+  };
   inRotation: boolean;
 
   constructor(info: AdInfo) {
@@ -43,6 +61,9 @@ export class AdInstance {
     this.info = info;
     this.scoring = new Scoring(info.price);
     this.inRotation = false;
+    this.properties = {
+      views: 0,
+    };
   }
 
   get score() {
@@ -80,7 +101,6 @@ export class AdInstance {
     } as AdContext);
   }
   calculateScore(): number {
-    this.addScore(Math.floor((Math.random() * 100) % this.score));
     this.scoring.calculate();
     return this.scoring.score;
   }
@@ -139,7 +159,8 @@ export class Marketplace {
   }
   reset() {
     this.ads = [];
-    return connection("ads").update({ score: 0 }).where("marketPlace", this.id);
+
+    return connection("ads").update({ score: 0 }).where("marketplaceId", this.id);
   }
   async refresh() {
     await Promise.all([this.calculateScores(), this.saveScores()]);

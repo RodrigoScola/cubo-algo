@@ -2,22 +2,27 @@
 
 <body id="body">
 
+
   <div class="px-3 pt-4">
     <button hx-get="/testing/calculateScores" hx-trigger="" hx-target="#body" class="bg-blue-400 p-1 text-white rounded-sm shadow-sm ">Calculate Scores</button>
     <button hx-get="/testing/reset" hx-trigger="" hx-target="#body" class="bg-red-400 p-1 text-white rounded-sm shadow-sm ">Reset Scores</button>
     <button hx-get="/testing/purge" hx-trigger="" hx-target="#body" class="bg-black p-1 text-white rounded-sm shadow-sm ">PURGE</button>
   </div>
+
+  <div hx-get="/testing/ads/settings" hx-trigger="load">
+    a
+  </div>
+
   <% for (let i =0 ; i < data.products.length; i++) { %>
   <% const product = data.products[i] %>
   <div class="font-bold px-3 w-fit <%= product.inRotation ? 'outline outline-yellow-200' : 'outline outline-red-500' %>">
 
     <% if (product.inRotation) { %>
-
-    <div hx-trigger="load" hx-get="/testing/ads/163/logging/?type=view">
+    <div hx-trigger="load" hx-get="/testing/ads/<%= product.info.id %>/logging/?type=view">
     </div>
 
     <% } %>
-    <h3 class="pt-4"><%= product.title %></h3>
+    <h3 class="pt-4"><%= product.currentContext.title %></h3>
 
     <p class=" py-2">ID: <%= product.id %></p>
 
