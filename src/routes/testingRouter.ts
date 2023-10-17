@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { AdHandler } from "../Adhandler";
-import { Algo, SETTINGS_FLAGS } from "../Algo";
+import { Algo, SETTINGS_FLAGS, isSettingType } from "../Algo";
 import { AppError, HTTPCodes } from "../ErrorHandler";
 import { LogTypes, isLogType, logFactory } from "../logging/LogTypes";
 import { connection } from "../server";
@@ -76,10 +76,6 @@ testingRouter.get("/ads/settings", (_, res) => {
   });
 });
 
-function isSettingType(settingName: string): settingName is keyof typeof SETTINGS_FLAGS {
-  return Object.keys(SETTINGS_FLAGS).includes(settingName);
-}
-
 testingRouter.put("/ads/settings", (req, res) => {
   if (!req.marketplace) {
     throw new AppError({
@@ -90,19 +86,17 @@ testingRouter.put("/ads/settings", (req, res) => {
 
   const settingType = req.query["setting"] as string;
 
-  if (typeof settingType !== "string" && !isSettingType(settingType)) {
+  const isSetting = isSettingType(settingType);
+  if (typeof settingType !== "string" && !isSetting) {
     throw new AppError({
       description: "invalid Setting description",
       httpCode: HTTPCodes.BAD_REQUEST,
     });
   }
-  if (isSettingType(settingType)) {
-    const isBoolean = typeof SETTINGS_FLAGS[settingType] === "boolean";
-    if (isBoolean) {
-      SETTINGS_FLAGS[settingType as keyof typeof SETTINGS_FLAGS] = !SETTINGS_FLAGS[
-        settingType as keyof typeof SETTINGS_FLAGS
-      ] as never;
-    }
+  if (isSetting && typeof SETTINGS_FLAGS[settingType] === "boolean") {
+    SETTINGS_FLAGS[settingType as keyof typeof SETTINGS_FLAGS] = !SETTINGS_FLAGS[
+      settingType as keyof typeof SETTINGS_FLAGS
+    ] as never;
   }
 
   res.render("partials/algoSettings", {

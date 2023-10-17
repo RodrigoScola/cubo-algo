@@ -78,7 +78,7 @@ server.use(EFunction);
 
 setInterval(() => {
   Algo.refresh();
-}, 1000);
+}, 15000);
 
 server.listen(process.env.PORT, async () => {
   console.clear();

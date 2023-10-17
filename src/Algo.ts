@@ -1,5 +1,8 @@
 import { Marketplace } from "./marketplace";
 
+export function isSettingType(settingName: string): settingName is keyof typeof SETTINGS_FLAGS {
+  return Object.keys(SETTINGS_FLAGS).includes(settingName);
+}
 export const SETTINGS_FLAGS = {
   viewWeight: 1,
   countViews: true,
