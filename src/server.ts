@@ -46,7 +46,13 @@ server.use(["/ads", "/testing"], (req, _, next) => {
 });
 
 server.get("/ads", (req, res) => {
-  const data = req.marketplace?.getAds();
+  const data = req.marketplace?.getAds("product");
+  res.send({
+    data: data,
+  });
+});
+server.get("/ads/products", (req, res) => {
+  const data = req.marketplace?.getAds("product");
   res.send({
     data: data,
   });
@@ -119,7 +125,7 @@ server.get("/testing/reset", async (req, res) => {
   await marketplace.reset();
   await marketplace.setup();
   marketplace.start();
-  const ads = marketplace.getAds();
+  const ads = marketplace.getAds("product");
   return res.render("home", {
     data: {
       products: ads,
@@ -142,14 +148,13 @@ server.get("/testing/purge", async (_, res) => {
   Algo.start();
   res.redirect("/testing/ads");
 });
-server.get("/testing/ads/:adId/logging", async (req, res) => {
+server.get("/testing/ads/:adId/logging", (req, res) => {
   if (!req.marketplace) {
     throw new AppError({
       description: "invalid Marketplace Id",
       httpCode: HTTPCodes.BAD_REQUEST,
     });
   }
-  const ad = req.marketplace.getAd(Number(req.params.adId));
   const logtype = logFactory.getLog("view");
   logtype.log("vie");
 

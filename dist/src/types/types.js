@@ -1,16 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SkuFileObject = exports.NewSkuFileObject = exports.UpdatingSkuInventoryObject = exports.SkuInventoryInfoObject = exports.NewSkuInventoryObject = exports.SkuInfoObject = exports.NewSkuInfoObject = exports.ProductInfoObject = exports.NewProductInfoObject = exports.AdInfoObject = exports.NewAdInfoObject = void 0;
+exports.SkuFileObject = exports.NewSkuFileObject = exports.UpdatingSkuInventoryObject = exports.SkuInventoryInfoObject = exports.NewSkuInventoryObject = exports.SkuInfoObject = exports.NewSkuInfoObject = exports.ProductInfoObject = exports.NewProductInfoObject = exports.UpdatingAdInfoObject = exports.MarketplaceObj = exports.AdInfoObject = exports.NewAdInfoObject = void 0;
 exports.NewAdInfoObject = {
-    marketPlace: "",
-    sellerId: 0,
-    productId: 0,
-    isActive: 0,
-    skuId: 0,
-    score: 0,
-    price: 0,
+    marketplaceId: 3,
+    price: 300,
+    productId: 3,
 };
-exports.AdInfoObject = Object.assign(Object.assign({}, exports.NewAdInfoObject), { skuId: 0, id: 0 });
+exports.AdInfoObject = Object.assign(Object.assign({}, exports.NewAdInfoObject), { score: 9, isActive: true, skuId: 0, id: 0 });
+exports.MarketplaceObj = {
+    id: 9,
+    name: "wecode",
+};
+exports.UpdatingAdInfoObject = Object.entries(exports.NewAdInfoObject).reduce((accumulator, [key, value]) => {
+    if (key === "id") {
+        return accumulator;
+    }
+    if (key) {
+        Object.assign(accumulator, { [key]: value });
+    }
+    return accumulator;
+}, {});
 exports.NewProductInfoObject = {
     userId: "",
     name: "",
@@ -31,14 +40,14 @@ exports.NewProductInfoObject = {
     showWithoutStock: true,
     adWordsRemarketingCode: "",
     lomadeeCampaignCode: "",
-    isActive: 1,
+    isActive: true,
     score: 0,
 };
 exports.ProductInfoObject = Object.assign(Object.assign({}, exports.NewProductInfoObject), { id: 0 });
 exports.NewSkuInfoObject = {
     isPersisted: false,
     productId: 0,
-    isActive: 1,
+    isActive: true,
     name: "",
     height: 0,
     realHeight: 0,

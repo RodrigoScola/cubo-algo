@@ -75,7 +75,7 @@ export const NewProductInfoObject = {
   showWithoutStock: true,
   adWordsRemarketingCode: "",
   lomadeeCampaignCode: "",
-  isActive: 1,
+  isActive: true,
   score: 0,
 };
 export const ProductInfoObject = {
@@ -89,7 +89,7 @@ export type UpdatingProductInfo = Partial<typeof NewProductInfoObject>;
 export const NewSkuInfoObject = {
   isPersisted: false,
   productId: 0,
-  isActive: 1,
+  isActive: true,
   name: "",
   height: 0,
   realHeight: 0,

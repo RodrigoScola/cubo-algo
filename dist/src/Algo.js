@@ -15,8 +15,8 @@ class Algo {
     constructor() {
         Algo.marketplaces = new Map();
     }
-    static getMarketPlace(name) {
-        return this.marketplaces.get(name);
+    static getMarketPlace(id) {
+        return this.marketplaces.get(id);
     }
     static reset() {
         return Promise.all([...Algo.marketplaces].map(([_, marketplace]) => {
@@ -25,10 +25,10 @@ class Algo {
     }
     static setup() {
         return __awaiter(this, void 0, void 0, function* () {
-            const marketPlaceNames = ["wecode"];
-            yield Promise.all(marketPlaceNames.map((marketplaceName) => {
-                const market = new marketplace_1.Marketplace(marketplaceName);
-                Algo.marketplaces.set(marketplaceName, market);
+            const marketPlaceNames = [1];
+            yield Promise.all(marketPlaceNames.map((marketplaceId) => {
+                const market = new marketplace_1.Marketplace(marketplaceId);
+                Algo.marketplaces.set(marketplaceId, market);
                 return market.setup();
             }));
         });

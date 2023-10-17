@@ -15,12 +15,22 @@ class AdHandler {
     getContext(adInfo) {
         return AdHandler.getContext(adInfo);
     }
+    static getAdsContext(info) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield Promise.all(info.map((ad) => {
+                return ad.getContext();
+            }));
+        });
+    }
     static postProduct(info) {
-        return (0, server_1.connection)("ads").insert(info).returning("id");
+        return __awaiter(this, void 0, void 0, function* () {
+            const [skuIds] = yield AdHandler.getBestSku(info);
+            return (0, server_1.connection)("ads").insert(Object.assign(Object.assign({}, info), { skuId: skuIds[0].skuId }));
+        });
     }
     static getContext(adInfo) {
         return __awaiter(this, void 0, void 0, function* () {
-            const itemPromise = yield (0, server_1.connection)("ads")
+            const itemPromise = (yield (0, server_1.connection)("ads")
                 .select("*")
                 .join("sku", function () {
                 this.on("ads.skuId", "=", "sku.id");
@@ -30,7 +40,7 @@ class AdHandler {
                 .join("products", function () {
                 this.on("products.id", "=", "ads.productId");
             })
-                .first();
+                .first());
             const imagesPromise = (0, server_1.connection)("sku_file").select("isMain", "url", "name").where("skuId", adInfo.skuId);
             const [item, images] = yield Promise.all([itemPromise, imagesPromise]);
             if (!item)

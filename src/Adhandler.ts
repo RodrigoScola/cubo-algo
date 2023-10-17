@@ -21,7 +21,7 @@ export class AdHandler {
     });
   }
   static async getContext(adInfo: AdInfo) {
-    const itemPromise = await connection<AdContext>("ads")
+    const itemPromise = (await connection<AdContext>("ads")
       .select("*")
       .join("sku", function () {
         this.on("ads.skuId", "=", "sku.id");
@@ -31,7 +31,7 @@ export class AdHandler {
       .join("products", function () {
         this.on("products.id", "=", "ads.productId");
       })
-      .first();
+      .first()) as AdContext;
 
     const imagesPromise = connection("sku_file").select("isMain", "url", "name").where("skuId", adInfo.skuId);
 

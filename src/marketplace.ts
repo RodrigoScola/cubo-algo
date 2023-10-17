@@ -35,9 +35,11 @@ export class AdInstance {
   info: AdInfo;
   private currentContext?: AdContext;
   scoring: Scoring;
+  type: "product" | "banner";
   inRotation: boolean;
 
   constructor(info: AdInfo) {
+    this.type = "product";
     this.info = info;
     this.scoring = new Scoring(info.price);
     this.inRotation = false;
@@ -121,9 +123,9 @@ export class Marketplace {
       })
     );
   }
-  getAds(): AdContext[] {
+  getAds(type: "product" | "banner"): AdContext[] {
     return this.ads.reduce((acc: AdContext[], item) => {
-      if (item.inRotation && item.context) {
+      if (item.inRotation && item.context && item.type === type) {
         acc.push(item.context);
       }
       return acc;
