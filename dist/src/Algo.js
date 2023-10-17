@@ -9,8 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Algo = void 0;
+exports.Algo = exports.SETTINGS_FLAGS = void 0;
 const marketplace_1 = require("./marketplace");
+exports.SETTINGS_FLAGS = {
+    viewWeight: 1,
+    countViews: true,
+    exponentialBackoff: true,
+};
 class Algo {
     constructor() {
         Algo.marketplaces = new Map();

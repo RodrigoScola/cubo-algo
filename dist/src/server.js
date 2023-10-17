@@ -15,11 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.connection = void 0;
 const express_1 = __importDefault(require("express"));
 const knex_1 = require("knex");
-const Adhandler_1 = require("./Adhandler");
 const Algo_1 = require("./Algo");
 const ErrorHandler_1 = require("./ErrorHandler");
 const constants_1 = require("./constants");
-const LogTypes_1 = require("./logging/LogTypes");
+const testingRouter_1 = require("./routes/testingRouter");
+const cors_1 = __importDefault(require("cors"));
 const config = {
     client: "mysql2",
     connection: process.env.DATABASE_URL || "",
@@ -30,28 +30,35 @@ const config = {
 };
 exports.connection = (0, knex_1.knex)(config);
 const server = (0, express_1.default)();
+server.use((0, cors_1.default)({
+    origin: "*",
+}));
 server.use(express_1.default.json());
 server.use(express_1.default.urlencoded({ extended: true }));
 server.set("view engine", "ejs");
 server.set("views", __dirname + "/views");
-server.use(["/ads", "/testing"], (req, _, next) => {
-    let marketplaceId = Number(req.headers["marketplace"] || req.query["marketplace"] || req.body["marketplace"]);
+server.use(["/ads", "/testing"], (req, _, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const marketplaceName = req.headers["marketplace"];
     if (constants_1.__DEV__) {
-        marketplaceId = 1;
+        console.log("dev");
     }
-    if (!marketplaceId || typeof marketplaceId !== "number") {
-        throw new ErrorHandler_1.AppError({ description: "marketplace is invalid", httpCode: ErrorHandler_1.HTTPCodes.BAD_REQUEST });
-    }
-    const marketplace = Algo_1.Algo.getMarketPlace(marketplaceId);
+    console.log(marketplaceName);
+    const { id } = yield exports.connection
+        .select("id")
+        .from("marketplaces")
+        .where("name", marketplaceName)
+        .first();
+    const marketplace = Algo_1.Algo.getMarketPlace(id);
     if (!marketplace) {
         throw new ErrorHandler_1.AppError({
-            description: `Marketplace ${marketplaceId} not found`,
+            description: `Marketplace ${id} not found`,
             httpCode: ErrorHandler_1.HTTPCodes.NOT_FOUND,
         });
     }
     req.marketplace = marketplace;
     next();
-});
+}));
+server.use("/testing", testingRouter_1.testingRouter);
 server.get("/ads", (req, res) => {
     var _a;
     const data = (_a = req.marketplace) === null || _a === void 0 ? void 0 : _a.getAds("product");
@@ -66,102 +73,14 @@ server.get("/ads/products", (req, res) => {
         data: data,
     });
 });
-server.get("/testing/ads", (req, res) => {
-    var _a;
-    const data = (_a = req.marketplace) === null || _a === void 0 ? void 0 : _a.getAllAds();
-    res.render("home", { data: { products: data } });
-});
-server.post("/ads", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const marketplace = req.marketplace;
-    if (!marketplace)
-        throw new ErrorHandler_1.AppError({ description: "marketplace is required", httpCode: ErrorHandler_1.HTTPCodes.BAD_REQUEST });
-    if (!("products" in req.body) || !Array.isArray(req.body.products))
-        throw new ErrorHandler_1.AppError({ description: "products is invalid", httpCode: ErrorHandler_1.HTTPCodes.BAD_REQUEST });
-    const products = req.body.products;
-    const ids = yield Promise.all(products.map((product) => __awaiter(void 0, void 0, void 0, function* () {
-        return yield Adhandler_1.AdHandler.postProduct(product);
-    })));
-    const itemIds = ids[0];
-    const items = yield Promise.all(itemIds.map((id) => (0, exports.connection)("ads").select("*").where("id", id).first()));
-    items.forEach((item) => {
-        if (item) {
-            marketplace.addAd(item);
-        }
-    });
-    return res.json({
-        data: {
-            ids,
-            products,
-        },
-    });
-}));
-server.get("/testing/calculateScores", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const marketplace = req.marketplace;
-    if (!marketplace) {
-        throw new ErrorHandler_1.AppError({
-            description: "invalid Marketplace Id",
-            httpCode: ErrorHandler_1.HTTPCodes.BAD_REQUEST,
-        });
-    }
-    marketplace.calculateScores();
-    yield marketplace.refresh();
-    return res.render("home", {
-        data: {
-            products: marketplace.getAllAds(),
-        },
-    });
-}));
-server.get("/testing/reset", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const marketplace = req.marketplace;
-    if (!marketplace) {
-        throw new ErrorHandler_1.AppError({
-            description: "invalid Marketplace Id",
-            httpCode: ErrorHandler_1.HTTPCodes.BAD_REQUEST,
-        });
-    }
-    yield marketplace.reset();
-    yield marketplace.setup();
-    marketplace.start();
-    const ads = marketplace.getAds();
-    return res.render("home", {
-        data: {
-            products: ads,
-        },
-    });
-}));
-server.get("/testing/purge", (_, res) => __awaiter(void 0, void 0, void 0, function* () {
-    yield exports.connection.delete().from("ads");
-    const newInstances = [
-        { marketplaceId: 1, price: 2999, productId: 1 },
-        { marketplaceId: 1, price: 40, productId: 2 },
-        { marketplaceId: 1, price: 40, productId: 7 },
-        { marketplaceId: 1, price: 80, productId: 11 },
-        { marketplaceId: 1, price: 80, productId: 5 },
-    ];
-    yield Promise.all(newInstances.map((ad) => Adhandler_1.AdHandler.postProduct(ad)));
-    yield Algo_1.Algo.setup();
-    Algo_1.Algo.start();
-    res.redirect("/testing/ads");
-}));
-server.get("/testing/ads/:adId/logging", (req, res) => {
-    if (!req.marketplace) {
-        throw new ErrorHandler_1.AppError({
-            description: "invalid Marketplace Id",
-            httpCode: ErrorHandler_1.HTTPCodes.BAD_REQUEST,
-        });
-    }
-    const logtype = LogTypes_1.logFactory.getLog("view");
-    logtype.log("vie");
-    res.status(200);
-});
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const EFunction = (err, __, res, _next) => {
     ErrorHandler_1.ErrorHandler.handle(err, res);
 };
 server.use(EFunction);
-// setInterval(() => {
-//   Algo.refresh();
-// }, 1000);
+setInterval(() => {
+    Algo_1.Algo.refresh();
+}, 1000);
 server.listen(process.env.PORT, () => __awaiter(void 0, void 0, void 0, function* () {
     console.clear();
     yield Algo_1.Algo.setup();

@@ -8,7 +8,8 @@ class MarketplaceScoring {
     const max = instances[0];
     instances.forEach((instance) => {
       if (SETTINGS_FLAGS.exponentialBackoff) {
-        instance.addScore(Math.floor(Math.random() * instance.info.price) % max?.score);
+        const score = max?.score ?? 0;
+        instance.addScore(Math.floor(Math.random() * instance.info.price) % score);
       }
       instance.calculateScore();
     });
@@ -87,10 +88,13 @@ export class AdInstance {
       return Promise.resolve(this.context);
     }
     if (this.info.skuId === 0) {
-      const [sku] = await AdHandler.getBestSku(this.info);
-      await connection.update({ skuId: sku[0].skuId }).where({ id: this.info.id }).from("ads");
+      const skuId = await AdHandler.getBestSku(this.info);
 
-      this.info.skuId = sku[0].skuId;
+      if (!skuId) return;
+
+      await connection.update({ skuId }).where({ id: this.info.id }).from("ads");
+
+      this.info.skuId = skuId;
     }
 
     const context = await AdHandler.getContext(this.info);

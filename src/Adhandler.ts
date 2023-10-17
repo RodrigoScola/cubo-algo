@@ -17,8 +17,10 @@ export class AdHandler {
     const sku = await AdHandler.getBestSku(info);
     return connection("ads").insert({
       ...info,
+      adType: "product",
+
       skuId: sku,
-    });
+    } as NewAdInfo);
   }
   static async getContext(adInfo: AdInfo) {
     const itemPromise = (await connection<AdContext>("ads")

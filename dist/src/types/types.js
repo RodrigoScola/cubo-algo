@@ -5,6 +5,7 @@ exports.NewAdInfoObject = {
     marketplaceId: 3,
     price: 300,
     productId: 3,
+    adType: "",
 };
 exports.AdInfoObject = Object.assign(Object.assign({}, exports.NewAdInfoObject), { score: 9, isActive: true, skuId: 0, id: 0 });
 exports.MarketplaceObj = {

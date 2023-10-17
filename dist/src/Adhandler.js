@@ -24,8 +24,8 @@ class AdHandler {
     }
     static postProduct(info) {
         return __awaiter(this, void 0, void 0, function* () {
-            const [skuIds] = yield AdHandler.getBestSku(info);
-            return (0, server_1.connection)("ads").insert(Object.assign(Object.assign({}, info), { skuId: skuIds[0].skuId }));
+            const sku = yield AdHandler.getBestSku(info);
+            return (0, server_1.connection)("ads").insert(Object.assign(Object.assign({}, info), { adType: "product", skuId: sku }));
         });
     }
     static getContext(adInfo) {
@@ -50,9 +50,13 @@ class AdHandler {
         });
     }
     static getBestSku(ad) {
-        return server_1.connection.raw(`
+        return __awaiter(this, void 0, void 0, function* () {
+            const [skus] = yield server_1.connection.raw(`
     select sum(si.totalQuantity) as totalQuantity, si.skuId, s.productId from sku_inventory as si left join sku as s on si.skuId = s.id where s.productId = ${ad.productId} group by skuId order by totalQuantity desc
     `);
+            const skuId = skus[0].skuId;
+            return skuId;
+        });
     }
 }
 exports.AdHandler = AdHandler;

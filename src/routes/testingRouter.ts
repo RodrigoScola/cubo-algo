@@ -2,7 +2,7 @@ import { Router } from "express";
 import { AdHandler } from "../Adhandler";
 import { Algo, SETTINGS_FLAGS } from "../Algo";
 import { AppError, HTTPCodes } from "../ErrorHandler";
-import { logFactory } from "../logging/LogTypes";
+import { LogTypes, isLogType, logFactory } from "../logging/LogTypes";
 import { connection } from "../server";
 import { NewAdInfo } from "../types/types";
 
@@ -75,6 +75,11 @@ testingRouter.get("/ads/settings", (_, res) => {
     algo: Algo,
   });
 });
+
+function isSettingType(settingName: string): settingName is keyof typeof SETTINGS_FLAGS {
+  return Object.keys(SETTINGS_FLAGS).includes(settingName);
+}
+
 testingRouter.put("/ads/settings", (req, res) => {
   if (!req.marketplace) {
     throw new AppError({
@@ -83,9 +88,22 @@ testingRouter.put("/ads/settings", (req, res) => {
     });
   }
 
-  const settingType = req.query["setting"];
+  const settingType = req.query["setting"] as string;
 
-  SETTINGS_FLAGS[settingType] = !SETTINGS_FLAGS[settingType as keyof typeof SETTINGS_FLAGS];
+  if (typeof settingType !== "string" && !isSettingType(settingType)) {
+    throw new AppError({
+      description: "invalid Setting description",
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
+  if (isSettingType(settingType)) {
+    const isBoolean = typeof SETTINGS_FLAGS[settingType] === "boolean";
+    if (isBoolean) {
+      SETTINGS_FLAGS[settingType as keyof typeof SETTINGS_FLAGS] = !SETTINGS_FLAGS[
+        settingType as keyof typeof SETTINGS_FLAGS
+      ] as never;
+    }
+  }
 
   res.render("partials/algoSettings", {
     algo: Algo,
@@ -101,9 +119,11 @@ testingRouter.get("/ads/:adId/logging", (req, res) => {
   }
   const ad = req.marketplace.getAd(Number(req.params["adId"]));
 
-  if (SETTINGS_FLAGS.countViews) {
-    const logtype = logFactory.getLog(req.query.type);
-    logtype.log(ad);
+  if (SETTINGS_FLAGS.countViews && "type" in req.query && isLogType(req.query.type as keyof typeof LogTypes)) {
+    const logtype = logFactory.getLog(req.query.type as keyof typeof LogTypes);
+    if (ad) {
+      logtype.log(ad);
+    }
   }
 
   res.status(200);

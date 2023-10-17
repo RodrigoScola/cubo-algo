@@ -11,10 +11,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Marketplace = exports.AdInstance = void 0;
 const Adhandler_1 = require("./Adhandler");
+const Algo_1 = require("./Algo");
 const server_1 = require("./server");
 class MarketplaceScoring {
     calculateScore(instances) {
-        instances.forEach((instance) => instance.calculateScore());
+        const max = instances[0];
+        instances.forEach((instance) => {
+            var _a;
+            if (Algo_1.SETTINGS_FLAGS.exponentialBackoff) {
+                const score = (_a = max === null || max === void 0 ? void 0 : max.score) !== null && _a !== void 0 ? _a : 0;
+                instance.addScore(Math.floor(Math.random() * instance.info.price) % score);
+            }
+            instance.calculateScore();
+        });
     }
     sortScores(ads) {
         return ads.sort((a, b) => b.score - a.score);
@@ -24,16 +33,21 @@ class Scoring {
     constructor(initialScore) {
         this.numbers = [initialScore];
         this.score = initialScore;
+        this.baseScore = initialScore;
     }
     add(num) {
         this.numbers.push(num);
     }
     calculate() {
-        let result = 0;
+        this.score = 0;
         this.numbers.forEach((number) => {
-            result += number;
+            this.score += number;
         });
-        return (this.score = result);
+        return this.score;
+    }
+    reset() {
+        this.numbers = [];
+        this.score = this.baseScore;
     }
 }
 class AdInstance {
@@ -42,6 +56,9 @@ class AdInstance {
         this.info = info;
         this.scoring = new Scoring(info.price);
         this.inRotation = false;
+        this.properties = {
+            views: 0,
+        };
     }
     get score() {
         return this.scoring.score || 0;
@@ -61,16 +78,17 @@ class AdInstance {
                 return Promise.resolve(this.context);
             }
             if (this.info.skuId === 0) {
-                const [sku] = yield Adhandler_1.AdHandler.getBestSku(this.info);
-                yield server_1.connection.update({ skuId: sku[0].skuId }).where({ id: this.info.id }).from("ads");
-                this.info.skuId = sku[0].skuId;
+                const skuId = yield Adhandler_1.AdHandler.getBestSku(this.info);
+                if (!skuId)
+                    return;
+                yield server_1.connection.update({ skuId }).where({ id: this.info.id }).from("ads");
+                this.info.skuId = skuId;
             }
             const context = yield Adhandler_1.AdHandler.getContext(this.info);
             return (this.currentContext = Object.assign(Object.assign({}, context), { score: this.score }));
         });
     }
     calculateScore() {
-        this.addScore(Math.floor((Math.random() * 100) % this.score));
         this.scoring.calculate();
         return this.scoring.score;
     }
@@ -127,7 +145,7 @@ class Marketplace {
     }
     reset() {
         this.ads = [];
-        return (0, server_1.connection)("ads").update({ score: 0 }).where("marketPlace", this.id);
+        return (0, server_1.connection)("ads").update({ score: 0 }).where("marketplaceId", this.id);
     }
     refresh() {
         return __awaiter(this, void 0, void 0, function* () {

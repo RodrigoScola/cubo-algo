@@ -31,15 +31,22 @@ server.set("views", __dirname + "/views");
 
 server.use(["/ads", "/testing"], async (req, _, next) => {
   const marketplaceName = req.headers["marketplace"];
-  const id = 1;
 
   if (__DEV__) {
+    console.log("dev");
   }
+  console.log(marketplaceName);
+
+  const { id } = await connection
+    .select("id")
+    .from("marketplaces")
+    .where("name", marketplaceName as string)
+    .first();
 
   const marketplace = Algo.getMarketPlace(id);
   if (!marketplace) {
     throw new AppError({
-      description: `Marketplace ${marketplaceId} not found`,
+      description: `Marketplace ${id} not found`,
       httpCode: HTTPCodes.NOT_FOUND,
     });
   }
