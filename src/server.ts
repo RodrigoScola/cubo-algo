@@ -27,7 +27,7 @@ server.set("view engine", "ejs");
 server.set("views", __dirname + "/views");
 
 server.use(["/ads", "/testing"], (req, _, next) => {
-  let marketplaceId = Number(req.headers["marketplace"] || req.query["marketplace"] || req.body["marketplace"]);
+  let marketplaceId = Number(req.headers["marketplaceId"] || req.query["marketplaceId"] || req.body["marketplaceId"]);
 
   if (__DEV__) {
     marketplaceId = 1;
