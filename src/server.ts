@@ -5,6 +5,8 @@ import { AppError, ErrorHandler, HTTPCodes } from "./ErrorHandler";
 import { __DEV__ } from "./constants";
 import { testingRouter } from "./routes/testingRouter";
 
+import cors from "cors";
+
 const config: Knex.Config = {
   client: "mysql2",
   connection: process.env.DATABASE_URL || "",
@@ -16,6 +18,11 @@ const config: Knex.Config = {
 export const connection = Kcon(config);
 
 const server = express();
+server.use(
+  cors({
+    origin: "*",
+  })
+);
 
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
