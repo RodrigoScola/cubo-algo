@@ -1,10 +1,10 @@
-import cors from "cors";
 import express, { ErrorRequestHandler, Request, Response } from "express";
 import { knex as Kcon, Knex } from "knex";
 import { Algo } from "./Algo";
 import { AppError, ErrorHandler, HTTPCodes } from "./ErrorHandler";
 import { __DEV__ } from "./constants";
 import { testingRouter } from "./routes/testingRouter";
+
 const config: Knex.Config = {
   client: "mysql2",
   connection: process.env.DATABASE_URL || "",
@@ -17,17 +17,13 @@ export const connection = Kcon(config);
 
 const server = express();
 
-const corsOptions = {
-  origin: "*",
-};
-server.use(cors(corsOptions));
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 server.set("view engine", "ejs");
 server.set("views", __dirname + "/views");
 
 server.use(["/ads", "/testing"], (req, _, next) => {
-  let marketplaceId = Number(req.headers["marketplaceId"] || req.query["marketplaceId"] || req.body["marketplaceId"]);
+  let marketplaceId = req.headers["marketplace"] || req.query["marketplace"] || req.body["marketplace"];
 
   if (__DEV__) {
     marketplaceId = 1;
