@@ -1,8 +1,10 @@
 import express, { ErrorRequestHandler, Request, Response } from "express";
 import { knex as Kcon, Knex } from "knex";
+import { AdHandler } from "./Adhandler";
 import { Algo } from "./Algo";
 import { AppError, ErrorHandler, HTTPCodes } from "./ErrorHandler";
 import { __DEV__ } from "./constants";
+import { logFactory } from "./logging/LogTypes";
 import { AdInfo, NewAdInfo } from "./types/types";
 
 const config: Knex.Config = {
@@ -23,13 +25,13 @@ server.set("view engine", "ejs");
 server.set("views", __dirname + "/views");
 
 server.use(["/ads", "/testing"], (req, _, next) => {
-  let marketplaceId = req.headers["marketplace"] || req.query["marketplace"] || req.body["marketplace"];
+  let marketplaceId = Number(req.headers["marketplace"] || req.query["marketplace"] || req.body["marketplace"]);
 
   if (__DEV__) {
-    marketplaceId = "wecode";
+    marketplaceId = 1;
   }
 
-  if (!marketplaceId || typeof marketplaceId !== "string") {
+  if (!marketplaceId || typeof marketplaceId !== "number") {
     throw new AppError({ description: "marketplace is invalid", httpCode: HTTPCodes.BAD_REQUEST });
   }
   const marketplace = Algo.getMarketPlace(marketplaceId);
@@ -50,8 +52,7 @@ server.get("/ads", (req, res) => {
   });
 });
 server.get("/testing/ads", (req, res) => {
-  const data = req.marketplace?.getAds();
-
+  const data = req.marketplace?.getAllAds();
   res.render("home", { data: { products: data } });
 });
 
@@ -66,7 +67,7 @@ server.post("/ads", async (req, res) => {
 
   const ids = await Promise.all(
     products.map(async (product) => {
-      return await marketplace.postProduct(product);
+      return await AdHandler.postProduct(product);
     })
   );
   const itemIds = ids[0] as unknown as number[];
@@ -97,13 +98,12 @@ server.get("/testing/calculateScores", async (req, res) => {
   }
 
   marketplace.calculateScores();
-  marketplace.sortScores();
 
-  const [ads] = await Promise.all([marketplace.getAds(), marketplace.saveScores()]);
+  await marketplace.refresh();
 
   return res.render("home", {
     data: {
-      products: ads,
+      products: marketplace.getAllAds(),
     },
   });
 });
@@ -126,6 +126,35 @@ server.get("/testing/reset", async (req, res) => {
     },
   });
 });
+server.get("/testing/purge", async (_, res) => {
+  await connection.delete().from("ads");
+
+  const newInstances: NewAdInfo[] = [
+    { marketplaceId: 1, price: 2999, productId: 1 },
+    { marketplaceId: 1, price: 40, productId: 2 },
+    { marketplaceId: 1, price: 40, productId: 7 },
+    { marketplaceId: 1, price: 80, productId: 11 },
+    { marketplaceId: 1, price: 80, productId: 5 },
+  ];
+
+  await Promise.all(newInstances.map((ad) => AdHandler.postProduct(ad)));
+  await Algo.setup();
+  Algo.start();
+  res.redirect("/testing/ads");
+});
+server.get("/testing/ads/:adId/logging", async (req, res) => {
+  if (!req.marketplace) {
+    throw new AppError({
+      description: "invalid Marketplace Id",
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
+  const ad = req.marketplace.getAd(Number(req.params.adId));
+  const logtype = logFactory.getLog("view");
+  logtype.log("vie");
+
+  res.status(200);
+});
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const EFunction: ErrorRequestHandler = (err: Error, __: Request, res: Response, _next) => {
@@ -134,9 +163,9 @@ const EFunction: ErrorRequestHandler = (err: Error, __: Request, res: Response, 
 
 server.use(EFunction);
 
-setInterval(() => {
-  Algo.refresh();
-}, 1000);
+// setInterval(() => {
+//   Algo.refresh();
+// }, 1000);
 
 server.listen(process.env.PORT, async () => {
   console.clear();

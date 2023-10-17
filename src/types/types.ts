@@ -1,20 +1,41 @@
 export const NewAdInfoObject = {
-  marketPlace: "",
-  sellerId: 0,
-  productId: 0,
-  isActive: 0,
-  skuId: 0,
-  score: 0,
-  price: 0,
+  marketplaceId: 3,
+  price: 300,
+  productId: 3,
 };
+
 export const AdInfoObject = {
   ...NewAdInfoObject,
+  score: 9,
+  isActive: true,
   skuId: 0,
   id: 0,
 };
 
+export const MarketplaceObj = {
+  id: 9,
+  name: "wecode",
+};
+export type Marketplace = typeof MarketplaceObj;
+
 export type AdInfo = typeof AdInfoObject;
 export type NewAdInfo = typeof NewAdInfoObject;
+
+export const UpdatingAdInfoObject: Partial<Omit<typeof AdInfoObject, "id">> = Object.entries(NewAdInfoObject).reduce(
+  (accumulator, [key, value]) => {
+    if (key === "id") {
+      return accumulator;
+    }
+    if (key) {
+      Object.assign(accumulator, { [key]: value });
+    }
+
+    return accumulator;
+  },
+  {} as Partial<Omit<typeof AdInfoObject, "id">>
+);
+
+export type UpdatingAdInfo = typeof UpdatingAdInfoObject;
 
 export type AdContext = ProductInfo &
   SkuInfo &

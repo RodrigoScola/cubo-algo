@@ -1,3 +1,4 @@
+import { AdInstance } from "./marketplace";
 import { connection } from "./server";
 import { AdContext, AdInfo, NewAdInfo } from "./types/types";
 
@@ -5,8 +6,19 @@ export class AdHandler {
   getContext(adInfo: AdInfo) {
     return AdHandler.getContext(adInfo);
   }
-  static postProduct(info: NewAdInfo) {
-    return connection("ads").insert(info).returning("id");
+  static async getAdsContext(info: AdInstance[]): Promise<(AdContext | undefined)[]> {
+    return await Promise.all(
+      info.map((ad) => {
+        return ad.getContext();
+      })
+    );
+  }
+  static async postProduct(info: NewAdInfo) {
+    const [skuIds] = await AdHandler.getBestSku(info);
+    return connection("ads").insert({
+      ...info,
+      skuId: skuIds[0].skuId,
+    });
   }
   static async getContext(adInfo: AdInfo) {
     const itemPromise = await connection<AdContext>("ads")

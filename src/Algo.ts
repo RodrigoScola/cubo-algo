@@ -1,12 +1,12 @@
 import { Marketplace } from "./marketplace";
 
 export class Algo {
-  private static marketplaces: Map<string, Marketplace> = new Map();
+  private static marketplaces: Map<number, Marketplace> = new Map();
   constructor() {
     Algo.marketplaces = new Map();
   }
-  static getMarketPlace(name: string) {
-    return this.marketplaces.get(name);
+  static getMarketPlace(id: number) {
+    return this.marketplaces.get(id);
   }
   static reset() {
     return Promise.all(
@@ -16,15 +16,16 @@ export class Algo {
     );
   }
   static async setup() {
-    const marketPlaceNames = ["wecode"];
+    const marketPlaceNames = [1];
     await Promise.all(
-      marketPlaceNames.map((marketplaceName) => {
-        const market = new Marketplace(marketplaceName);
-        Algo.marketplaces.set(marketplaceName, market);
+      marketPlaceNames.map((marketplaceId) => {
+        const market = new Marketplace(marketplaceId);
+        Algo.marketplaces.set(marketplaceId, market);
         return market.setup();
       })
     );
   }
+
   static start() {
     this.marketplaces.forEach((marketplace) => {
       marketplace.start();
