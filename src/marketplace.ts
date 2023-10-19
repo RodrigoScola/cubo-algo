@@ -9,7 +9,9 @@ class MarketplaceScoring {
     instances.forEach((instance) => {
       if (SETTINGS_FLAGS.exponentialBackoff) {
         const score = max?.score ?? 0;
-        instance.addScore(Math.floor(Math.random() * instance.info.price) % score);
+        instance.addScore(
+          Math.floor(Math.random() * instance.info.price) % score
+        );
       }
       instance.calculateScore();
     });
@@ -92,7 +94,10 @@ export class AdInstance {
 
       if (!skuId) return;
 
-      await connection.update({ skuId }).where({ id: this.info.id }).from("ads");
+      await connection
+        .update({ skuId })
+        .where({ id: this.info.id })
+        .from("ads");
 
       this.info.skuId = skuId;
     }
@@ -110,45 +115,61 @@ export class AdInstance {
   }
 }
 
+class AdManager {
+  ads: AdInstance[];
+  constructor(adInstances: AdInstance[]) {
+    this.ads = adInstances;
+  }
+}
+
 export class Marketplace {
-  private ads: AdInstance[];
+  private products: AdManager;
+
   private scoring: MarketplaceScoring;
   private readonly totalAdsPerBatch = 3;
   readonly id: number;
   constructor(id: number) {
     this.id = id;
     this.scoring = new MarketplaceScoring();
-    this.ads = [];
+    this.products = new AdManager([]);
   }
   async setup() {
-    const products = await connection("ads").select("*").where("marketplaceId", this.id);
+    const products = await connection("ads")
+      .select("*")
+      .where("marketplaceId", this.id);
 
     products.forEach((product) => {
       this.addAd(product);
     });
     this.calculateScores();
-    return await Promise.all([AdHandler.getAdsContext(this.ads), this.saveScores()]);
+    return await Promise.all([
+      AdHandler.getAdsContext(this.products.ads),
+      this.saveScores(),
+    ]);
   }
   start() {
-    this.ads.forEach((ad, i) => {
+    this.products.ads.forEach((ad, i) => {
       if (i < this.totalAdsPerBatch) {
         ad.inRotation = true;
       }
     });
   }
   calculateScores() {
-    this.scoring.calculateScore(this.ads);
-    this.ads = this.scoring.sortScores(this.ads);
+    this.scoring.calculateScore(this.products.ads);
+    this.products.ads = this.scoring.sortScores(this.products.ads);
   }
   async saveScores() {
     return await Promise.all(
-      this.ads.map((ad) => {
-        return connection("ads").update({ score: ad.score }).where("id", ad.info.id);
+      this.products.ads.map((ad) => {
+        return connection("ads")
+          .update({ score: ad.score })
+          .where("id", ad.info.id);
       })
     );
   }
+
   getAds(type: "product" | "banner"): AdContext[] {
-    return this.ads.reduce((acc: AdContext[], item) => {
+    return this.products.ads.reduce((acc: AdContext[], item) => {
       if (item.inRotation && item.context && item.type === type) {
         acc.push(item.context);
       }
@@ -156,20 +177,22 @@ export class Marketplace {
     }, []);
   }
   getAllAds() {
-    return this.ads;
+    return this.products;
   }
   getAd(id: number): AdInstance | undefined {
-    return this.ads.find((ad) => ad.info.id === id);
+    return this.products.ads.find((ad) => ad.info.id === id);
   }
   reset() {
-    this.ads = [];
+    this.products.ads = [];
 
-    return connection("ads").update({ score: 0 }).where("marketplaceId", this.id);
+    return connection("ads")
+      .update({ score: 0 })
+      .where("marketplaceId", this.id);
   }
   async refresh() {
     await Promise.all([this.calculateScores(), this.saveScores()]);
-    for (let i = 0; i < this.ads.length; i++) {
-      const ad = this.ads[i];
+    for (let i = 0; i < this.products.ads.length; i++) {
+      const ad = this.products.ads[i];
       if (!ad) continue;
 
       ad.inRotation = i < this.totalAdsPerBatch;
@@ -178,7 +201,7 @@ export class Marketplace {
 
   addAd(ad: AdInfo) {
     const instance = new AdInstance(ad);
-    this.ads.push(instance);
+    this.products.ads.push(instance);
     return instance;
   }
 }
