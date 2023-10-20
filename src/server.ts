@@ -56,13 +56,13 @@ server.use(["/ads", "/testing"], async (req, _, next) => {
 server.use("/testing", testingRouter);
 
 server.get("/ads", (req, res) => {
-  const data = req.marketplace?.getAds("product");
+  const data = req.marketplace?.getAds();
   res.send({
     data: data,
   });
 });
 server.get("/ads/products", (req, res) => {
-  const data = req.marketplace?.getAds("product");
+  const data = req.marketplace?.getAds();
   res.send({
     data: data,
   });

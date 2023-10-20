@@ -138,9 +138,9 @@ export class Marketplace {
       })
     );
   }
-  getAds(type: "product" | "banner"): AdContext[] {
+  getAds(): AdContext[] {
     return this.ads.reduce((acc: AdContext[], item) => {
-      if (item.inRotation && item.context && item.type === type) {
+      if (item.inRotation && item.context) {
         acc.push(item.context);
       }
       return acc;
