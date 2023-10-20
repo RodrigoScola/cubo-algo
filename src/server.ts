@@ -30,12 +30,11 @@ server.set("view engine", "ejs");
 server.set("views", __dirname + "/views");
 
 server.use(["/ads", "/testing"], async (req, _, next) => {
-  const marketplaceName = req.headers["marketplace"];
+  let marketplaceName = req.headers["marketplace"];
 
   if (__DEV__) {
-    console.log("dev");
+    marketplaceName = "wecode";
   }
-  console.log(marketplaceName);
 
   const { id } = await connection
     .select("id")
@@ -67,6 +66,10 @@ server.get("/ads/products", (req, res) => {
   res.send({
     data: data,
   });
+});
+
+server.get("/ping", (req, res) => {
+  res.send("pong");
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

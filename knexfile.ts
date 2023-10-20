@@ -1,4 +1,4 @@
-import { AdInfo, InventoryInfo, ProductInfo, SkuFile, SkuInfo } from "./src/types/types";
+import { AdInfo, Interaction, InventoryInfo, ProductInfo, SkuFile, SkuInfo } from "./src/types/types";
 
 declare module "knex/types/tables" {
   interface Tables {
@@ -7,5 +7,6 @@ declare module "knex/types/tables" {
     sku_inventory: InventoryInfo;
     ads: AdInfo;
     sku_file: SkuFile;
+    interaction: Interaction;
   }
 }

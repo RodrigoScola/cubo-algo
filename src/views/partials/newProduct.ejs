@@ -1,0 +1,35 @@
+<div>
+
+  <form id="myform" method="post" action="/testing/ads/new">
+    <div class="flex flex-col">
+      <label>
+        ProductId
+        <div>
+
+          <input name="productId" class="outline outline-black" type="number" />
+        </div>
+      </label>
+
+      <label>
+        marketplaceId
+        <div>
+
+          <input type="number" name="marketplaceId" class="outline outline-black" />
+        </div>
+      </label>
+
+      <label>
+        price
+        <div>
+
+          <input type="number" name="price" class="outline outline-black" />
+        </div>
+      </label>
+    </div>
+    <div class="w-fit m-auto p-2">
+    </div>
+  </form>
+  <button hx-post="/testing/ads/new" hx-swap="none" hx-include="#myform" hx-trigger="click" class="p-2 bg-yellow-200">
+    New
+  </button>
+</div>

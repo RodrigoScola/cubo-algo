@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { AdHandler } from "../Adhandler";
 import { Algo, SETTINGS_FLAGS, isSettingType } from "../Algo";
 import { AppError, HTTPCodes } from "../ErrorHandler";
+import { SERVER_URL } from "../constants";
 import { LogTypes, isLogType, logFactory } from "../logging/LogTypes";
 import { connection } from "../server";
 import { NewAdInfo } from "../types/types";
@@ -11,6 +11,28 @@ export const testingRouter = Router();
 testingRouter.get("/ads", (req, res) => {
   const data = req.marketplace?.getAllAds();
   res.render("home", { data: { products: data } });
+});
+testingRouter.post("/ads/new", async (req, res) => {
+  const newAd: NewAdInfo = {
+    adType: "product",
+    productId: Number(req.body.productId),
+    marketplaceId: Number(req.body.marketplaceId),
+    price: Number(req.body.price),
+  };
+  const a = await fetch(`${SERVER_URL}/ads`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+    body: JSON.stringify(newAd),
+  });
+  const jsona = await a.json();
+
+  console.log(jsona);
+
+  res.send({
+    json: "asdf",
+  });
 });
 
 testingRouter.get("/calculateScores", async (req, res) => {
@@ -55,15 +77,6 @@ testingRouter.get("/reset", async (req, res) => {
 testingRouter.get("/purge", async (_, res) => {
   await connection.delete().from("ads");
 
-  const newInstances: NewAdInfo[] = [
-    { marketplaceId: 1, price: 2999, productId: 1, adType: "product" },
-    { marketplaceId: 1, price: 40, productId: 2, adType: "product" },
-    { marketplaceId: 1, price: 40, productId: 7, adType: "product" },
-    { marketplaceId: 1, price: 80, productId: 11, adType: "product" },
-    { marketplaceId: 1, price: 80, productId: 5, adType: "product" },
-  ];
-
-  await Promise.all(newInstances.map((ad) => AdHandler.postProduct(ad)));
   await Algo.setup();
   Algo.start();
   res.redirect("/testing/ads");
@@ -72,7 +85,7 @@ testingRouter.get("/purge", async (_, res) => {
 testingRouter.get("/ads/settings", (_, res) => {
   console.log(SETTINGS_FLAGS);
   res.render("partials/algoSettings", {
-    algo: Algo,
+    flags: SETTINGS_FLAGS,
   });
 });
 
@@ -105,6 +118,7 @@ testingRouter.put("/ads/settings", (req, res) => {
 });
 
 testingRouter.get("/ads/:adId/logging", (req, res) => {
+  console.log("ahel");
   if (!req.marketplace) {
     throw new AppError({
       description: "invalid Marketplace Id",

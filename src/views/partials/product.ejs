@@ -1,0 +1,38 @@
+  <div class="font-bold px-3 w-full <%= product.inRotation ? 'outline outline-yellow-200' : 'outline outline-red-500' %>">
+
+    <% if (product.inRotation) { %>
+    <div hx-trigger="load" hx-get="/testing/ads/<%= product.info.id %>/logging/?type=view">
+    </div>
+
+    <% } %>
+    <h3 class="pt-4"><%= product.currentContext.title %></h3>
+
+
+    <div style="display: flex;">
+      <p>SCORE :<%= product.score %></p>
+    </div>
+
+    <div style="display: flex;">
+
+
+    </div>
+    <div class="flex">
+      <% for (let j =0 ; j < product.currentContext.images.length; j++) { %>
+      <% const image = product.currentContext.images[j] %>
+      <img src="<%= image.url %>" alt="<%= image.alt %>" class="w-14" />
+
+
+
+      <% } %>
+    </div>
+    <div class="flex gap-3 justify-center">
+      <p class=" font-light text-sm py-2">Id: <%= product.info.id %></p>
+      <p class=" font-light text-sm py-2">views: <%= product.currentContext.views %></p>
+      <p class=" font-light text-sm py-2">clicks: <%= product.currentContext.clicks %></p>
+    </div>
+    <div class="flex justify-around cursor-pointer">
+      <div hx-trigger="click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light">
+        add view
+      </div>
+    </div>
+  </div>

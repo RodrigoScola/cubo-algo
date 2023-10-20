@@ -1,16 +1,10 @@
 import { AdHandler } from "./Adhandler";
-import { SETTINGS_FLAGS } from "./Algo";
 import { connection } from "./server";
 import { AdContext, AdInfo } from "./types/types";
 
 class MarketplaceScoring {
   calculateScore(instances: AdInstance[]) {
-    const max = instances[0];
     instances.forEach((instance) => {
-      if (SETTINGS_FLAGS.exponentialBackoff) {
-        const score = max?.score ?? 0;
-        instance.addScore(Math.floor(Math.random() * instance.info.price) % score);
-      }
       instance.calculateScore();
     });
   }
@@ -52,9 +46,6 @@ export class AdInstance {
   private currentContext?: AdContext;
   scoring: Scoring;
   type: "product" | "banner";
-  properties: {
-    views: number;
-  };
   inRotation: boolean;
 
   constructor(info: AdInfo) {
@@ -62,9 +53,6 @@ export class AdInstance {
     this.info = info;
     this.scoring = new Scoring(info.price);
     this.inRotation = false;
-    this.properties = {
-      views: 0,
-    };
   }
 
   get score() {
@@ -99,6 +87,9 @@ export class AdInstance {
 
     const context = await AdHandler.getContext(this.info);
 
+    console.log(context?.views);
+    console.log(context?.views);
+    console.log(context?.views);
     return (this.currentContext = {
       ...context,
       score: this.score,

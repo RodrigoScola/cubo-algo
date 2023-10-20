@@ -13,6 +13,21 @@ export const AdInfoObject = {
   id: 0,
 };
 
+export const NewInteractionObject = {
+  clicks: 0,
+  views: 0,
+  ctr: 0,
+};
+
+export const InteractionObject = {
+  ...NewInteractionObject,
+  id: 0,
+};
+export type Interaction = typeof InteractionObject;
+
+export type InteractionType = keyof NewInteraction;
+
+export type NewInteraction = typeof NewInteractionObject;
 export const MarketplaceObj = {
   id: 9,
   name: "wecode",
@@ -44,6 +59,7 @@ export type UpdatingAdInfo = typeof UpdatingAdInfoObject;
 
 export type AdContext = ProductInfo &
   SkuInfo &
+  Interaction &
   AdInfo & {
     images?: {
       isMain: boolean;

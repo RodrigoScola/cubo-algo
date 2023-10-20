@@ -13,23 +13,19 @@ export class AdHandler {
       })
     );
   }
-  static async postProduct(info: NewAdInfo) {
-    const sku = await AdHandler.getBestSku(info);
-    return connection("ads").insert({
-      ...info,
-      adType: "product",
 
-      skuId: sku,
-    } as NewAdInfo);
-  }
   static async getContext(adInfo: AdInfo) {
     const itemPromise = (await connection<AdContext>("ads")
       .select("*")
       .join("sku", function () {
         this.on("ads.skuId", "=", "sku.id");
       })
+      .join("interactions", function () {
+        this.on("interactions.id", "=", "ads.id");
+      })
       .where("ads.id", adInfo.id)
       .andWhere("ads.productId", adInfo.productId)
+
       .join("products", function () {
         this.on("products.id", "=", "ads.productId");
       })
