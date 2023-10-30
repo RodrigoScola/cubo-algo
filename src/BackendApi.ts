@@ -1,7 +1,27 @@
 import { SERVER_URL } from "./constants";
 
 export class BackendApi {
-  post() {}
+  async post<T>(
+    url: string,
+    data: object
+  ): Promise<
+    | {
+        data: T;
+      }
+    | undefined
+  > {
+    const a = await fetch(`${SERVER_URL}${url}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+    if (a.ok) {
+      return a.json();
+    }
+    return;
+  }
   async update<T>(url: string, item: T): Promise<{ data: T } | undefined> {
     const newUrl = `${SERVER_URL}${url}`;
 

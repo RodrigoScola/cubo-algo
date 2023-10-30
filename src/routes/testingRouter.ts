@@ -2,10 +2,9 @@ import { Router } from "express";
 import { Algo, SETTINGS_FLAGS, isSettingType } from "../Algo";
 import { BackendApi } from "../BackendApi";
 import { AppError, HTTPCodes } from "../ErrorHandler";
-import { SERVER_URL } from "../constants";
 import { LogTypes, isLogType } from "../logging/LogTypes";
 import { connection } from "../server";
-import { Interaction, NewAdInfo } from "../types/types";
+import { AdInfo, Interaction, NewAdInfo } from "../types/types";
 
 export const testingRouter = Router();
 
@@ -23,17 +22,10 @@ testingRouter.post("/ads/new", async (req, res) => {
     marketplaceId: Number(req.body.marketplaceId),
     price: Number(req.body.price),
   };
-  const a = await fetch(`${SERVER_URL}/ads`, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-    body: JSON.stringify(newAd),
-  });
-  const jsona = await a.json();
 
+  const jsona = await new BackendApi().post<AdInfo>("/ads", newAd);
   res.send({
-    jsona,
+    data: jsona?.data,
   });
 });
 

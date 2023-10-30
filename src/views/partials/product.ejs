@@ -48,7 +48,7 @@
 
 
   <div class="flex justify-around cursor-pointer">
-    <div hx-trigger="click" hx-put="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light">
+    <div hx-trigger="click" hx-put="/ads/<%= product.info.id %>/interactions/?type=view&count=1" class="text-xs font-light">
       add view
     </div>
   </div>
