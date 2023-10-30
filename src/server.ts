@@ -1,7 +1,7 @@
 import express, { ErrorRequestHandler, Request, Response } from "express";
 import { knex as Kcon, Knex } from "knex";
 import { Algo } from "./Algo";
-import { AppError, ErrorHandler, HTTPCodes } from "./ErrorHandler";
+import { ErrorHandler, NOT_FOUND_ERROR } from "./ErrorHandler";
 import { __DEV__ } from "./constants";
 import { testingRouter } from "./routes/testingRouter";
 
@@ -44,10 +44,7 @@ server.use(["/ads", "/testing"], async (req, _, next) => {
 
   const marketplace = Algo.getMarketPlace(id);
   if (!marketplace) {
-    throw new AppError({
-      description: `Marketplace ${id} not found`,
-      httpCode: HTTPCodes.NOT_FOUND,
-    });
+    throw new NOT_FOUND_ERROR({ description: `Marketplace ${id} not found` });
   }
   req.marketplace = marketplace;
   next();
@@ -57,6 +54,7 @@ server.use("/testing", testingRouter);
 
 server.get("/ads", (req, res) => {
   const data = req.marketplace?.getAds();
+
   res.send({
     data: data,
   });
@@ -66,10 +64,6 @@ server.get("/ads/products", (req, res) => {
   res.send({
     data: data,
   });
-});
-
-server.get("/ping", (req, res) => {
-  res.send("pong");
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

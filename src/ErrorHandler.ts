@@ -73,3 +73,29 @@ export class AppError extends Error {
     Error.captureStackTrace(this);
   }
 }
+
+type NotFoundErrorArgs = {
+  name?: string;
+  description: string;
+  isOperational?: boolean;
+};
+export class NOT_FOUND_ERROR extends Error {
+  public override readonly name: string;
+  public readonly httpCode: HTTPCodes;
+  public readonly isOperational: boolean = true;
+
+  constructor(args: NotFoundErrorArgs) {
+    super(args.description);
+
+    Object.setPrototypeOf(this, new.target.prototype);
+
+    this.name = args.name || "Error";
+    this.httpCode = HTTPCodes.NOT_FOUND;
+
+    if (args.isOperational !== undefined) {
+      this.isOperational = args.isOperational;
+    }
+
+    Error.captureStackTrace(this);
+  }
+}

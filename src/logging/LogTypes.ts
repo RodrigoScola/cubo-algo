@@ -1,9 +1,7 @@
 import { AdInstance } from "../marketplace";
 
 export class ViewLogType {
-  log(arg: AdInstance) {
-    console.log(arg.context?.title, "was viewed by a user.");
-  }
+  log(arg: AdInstance) {}
 }
 
 export const LogTypes = {

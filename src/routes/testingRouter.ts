@@ -1,15 +1,19 @@
 import { Router } from "express";
 import { Algo, SETTINGS_FLAGS, isSettingType } from "../Algo";
+import { BackendApi } from "../BackendApi";
 import { AppError, HTTPCodes } from "../ErrorHandler";
 import { SERVER_URL } from "../constants";
-import { LogTypes, isLogType, logFactory } from "../logging/LogTypes";
+import { LogTypes, isLogType } from "../logging/LogTypes";
 import { connection } from "../server";
-import { NewAdInfo } from "../types/types";
+import { Interaction, NewAdInfo } from "../types/types";
 
 export const testingRouter = Router();
 
 testingRouter.get("/ads", (req, res) => {
   const data = req.marketplace?.getAllAds();
+  console.log({
+    a: req.marketplace?.productAds.map((c) => c.context?.views),
+  });
   res.render("home", { data: { products: data } });
 });
 testingRouter.post("/ads/new", async (req, res) => {
@@ -28,10 +32,8 @@ testingRouter.post("/ads/new", async (req, res) => {
   });
   const jsona = await a.json();
 
-  console.log(jsona);
-
   res.send({
-    json: "asdf",
+    jsona,
   });
 });
 
@@ -66,7 +68,7 @@ testingRouter.get("/reset", async (req, res) => {
   await marketplace.reset();
   await marketplace.setup();
   marketplace.start();
-  const ads = marketplace.getAds("product");
+  const ads = marketplace.getAds();
   return res.render("home", {
     data: {
       products: ads,
@@ -83,7 +85,6 @@ testingRouter.get("/purge", async (_, res) => {
 });
 
 testingRouter.get("/ads/settings", (_, res) => {
-  console.log(SETTINGS_FLAGS);
   res.render("partials/algoSettings", {
     flags: SETTINGS_FLAGS,
   });
@@ -117,7 +118,7 @@ testingRouter.put("/ads/settings", (req, res) => {
   });
 });
 
-testingRouter.get("/ads/:adId/logging", (req, res) => {
+testingRouter.put("/ads/:adId/logging", async (req, res) => {
   console.log("ahel");
   if (!req.marketplace) {
     throw new AppError({
@@ -128,9 +129,15 @@ testingRouter.get("/ads/:adId/logging", (req, res) => {
   const ad = req.marketplace.getAd(Number(req.params["adId"]));
 
   if (SETTINGS_FLAGS.countViews && "type" in req.query && isLogType(req.query.type as keyof typeof LogTypes)) {
-    const logtype = logFactory.getLog(req.query.type as keyof typeof LogTypes);
     if (ad) {
-      logtype.log(ad);
+      const updated = await new BackendApi().update<Partial<Interaction>>(`/ads/${ad.info.id}/interactions`, {
+        clicks: 3,
+      });
+
+      if (!ad.context || !updated || !updated.data) return;
+      if ("views" in updated.data) ad.context.views = updated.data.views;
+      if ("ctr" in updated.data) ad.context.ctr = updated.data.ctr;
+      if ("clicks" in updated.data) ad.context.clicks = updated.data.clicks;
     }
   }
 

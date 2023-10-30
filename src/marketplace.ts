@@ -5,6 +5,7 @@ import { AdContext, AdInfo } from "./types/types";
 class MarketplaceScoring {
   calculateScore(instances: AdInstance[]) {
     instances.forEach((instance) => {
+      if (instance.context && "views" in instance.context) instance.scoring.add(instance.context.ctr);
       instance.calculateScore();
     });
   }
@@ -16,34 +17,41 @@ class MarketplaceScoring {
 
 class Scoring {
   private numbers: number[];
-  score: number;
+  private _score: number;
+
   private readonly baseScore;
   constructor(initialScore: number) {
     this.numbers = [initialScore];
-    this.score = initialScore;
+    this._score = initialScore;
     this.baseScore = initialScore;
+  }
+  get score() {
+    return this._score;
   }
   add(num: number) {
     this.numbers.push(num);
   }
+  set(num: number) {
+    this._score = num;
+  }
   calculate() {
-    this.score = 0;
+    this._score = 0;
 
     this.numbers.forEach((number) => {
-      this.score += number;
+      this._score += number;
     });
-
+    this.numbers = [];
     return this.score;
   }
   reset() {
     this.numbers = [];
-    this.score = this.baseScore;
+    this._score = this.baseScore;
   }
 }
 
 export class AdInstance {
   info: AdInfo;
-  private currentContext?: AdContext;
+  context?: AdContext;
   scoring: Scoring;
   type: "product" | "banner";
   inRotation: boolean;
@@ -51,7 +59,7 @@ export class AdInstance {
   constructor(info: AdInfo) {
     this.type = "product";
     this.info = info;
-    this.scoring = new Scoring(info.price);
+    this.scoring = new Scoring(0);
     this.inRotation = false;
   }
 
@@ -62,15 +70,6 @@ export class AdInstance {
     this.scoring.add(num);
   }
 
-  get context() {
-    if (!this.currentContext) {
-      return undefined;
-    }
-    return {
-      ...this.currentContext,
-      score: this.score,
-    };
-  }
   async getContext() {
     if (this.context) {
       return Promise.resolve(this.context);
@@ -87,10 +86,8 @@ export class AdInstance {
 
     const context = await AdHandler.getContext(this.info);
 
-    console.log(context?.views);
-    console.log(context?.views);
-    console.log(context?.views);
-    return (this.currentContext = {
+    this.scoring.set(context?.ctr ?? 0);
+    return (this.context = {
       ...context,
       score: this.score,
     } as AdContext);
@@ -102,6 +99,8 @@ export class AdInstance {
 }
 
 export class Marketplace {
+  productAds: AdInstance[];
+
   private ads: AdInstance[];
   private scoring: MarketplaceScoring;
   private readonly totalAdsPerBatch = 3;
@@ -110,6 +109,7 @@ export class Marketplace {
     this.id = id;
     this.scoring = new MarketplaceScoring();
     this.ads = [];
+    this.productAds = [];
   }
   async setup() {
     const products = await connection("ads").select("*").where("marketplaceId", this.id);
@@ -169,6 +169,7 @@ export class Marketplace {
 
   addAd(ad: AdInfo) {
     const instance = new AdInstance(ad);
+    this.productAds.push(instance);
     this.ads.push(instance);
     return instance;
   }

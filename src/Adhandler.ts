@@ -1,6 +1,6 @@
-import { AdInstance } from "./marketplace";
-import { connection } from "./server";
-import { AdContext, AdInfo, NewAdInfo } from "./types/types";
+import {AdInstance} from "./marketplace";
+import {connection} from "./server";
+import {AdContext, AdInfo, NewAdInfo} from "./types/types";
 
 export class AdHandler {
   getContext(adInfo: AdInfo) {
@@ -45,7 +45,6 @@ export class AdHandler {
     const [skus] = await connection.raw(`
     select sum(si.totalQuantity) as totalQuantity, si.skuId, s.productId from sku_inventory as si left join sku as s on si.skuId = s.id where s.productId = ${ad.productId} group by skuId order by totalQuantity desc
     `);
-    const skuId = skus[0].skuId;
-    return skuId;
+    return skus[0].skuId;
   }
 }
