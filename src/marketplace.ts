@@ -112,7 +112,7 @@ export class Marketplace {
     this.productAds = [];
   }
   async setup() {
-    const products = await connection("ads").select("*").where("marketplaceId", this.id);
+    const products = await connection("ads").select("*").where("marketplaceId", this.id).andWhere("isActive", 1);
 
     products.forEach((product) => {
       this.addAd(product);
@@ -155,7 +155,7 @@ export class Marketplace {
   reset() {
     this.ads = [];
 
-    return connection("ads").update({ score: 0 }).where("marketplaceId", this.id);
+    return connection("ads").update({ score: 0 }).where("marketplaceId", this.id).andWhere("isActive", 1);
   }
   async refresh() {
     await Promise.all([this.calculateScores(), this.saveScores()]);

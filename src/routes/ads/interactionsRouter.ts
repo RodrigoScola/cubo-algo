@@ -3,22 +3,25 @@ import { BackendApi } from "../../BackendApi";
 import { AppError, HTTPCodes } from "../../ErrorHandler";
 import { Interaction } from "../../types/types";
 
-export const adsInteractionsRouter = Router();
+export const adsInteractionsRouter = Router({
+  mergeParams: true,
+});
 
-adsInteractionsRouter.put("/ads/:adId/interactions", async (req, res) => {
+adsInteractionsRouter.put("/", async (req, res) => {
   const { type, count } = req.query;
+  const numberCount = Number(count);
 
-  if (!type || !count) {
+  if (!type || !numberCount) {
     let returnMessage: string = "";
     if (!type) returnMessage = "type";
-    if (!type && !count) returnMessage += " and ";
+    if (!type && !numberCount) returnMessage += " and ";
     if (!count) returnMessage = "count";
     throw new AppError({
       description: `Missing ${returnMessage} query param`,
       httpCode: HTTPCodes.BAD_REQUEST,
     });
   }
-  if ((type !== "views" && type !== "clicks") || typeof count !== "number") {
+  if (type !== "views" && type !== "clicks") {
     throw new AppError({
       description: "Invalid Query Param",
       httpCode: HTTPCodes.BAD_REQUEST,
@@ -31,16 +34,30 @@ adsInteractionsRouter.put("/ads/:adId/interactions", async (req, res) => {
       httpCode: HTTPCodes.BAD_REQUEST,
     });
   }
-  const ad = req.marketplace.getAd(Number(req.params["adId"]));
+  const ad = req.marketplace.getAd(Number(req.params.adId));
 
-  if (ad) {
-    const updated = await new BackendApi().update<Partial<Interaction>>(`/ads/${ad.info.id}/interactions`, {
-      [type]: count,
+  if (!ad) {
+    throw new AppError({
+      description: "invalid Ad Id",
+      httpCode: HTTPCodes.BAD_REQUEST,
     });
-    if (!ad.context || !updated || !updated.data) return;
-    if ("views" in updated.data) ad.context.views = updated.data.views;
-    if ("ctr" in updated.data) ad.context.ctr = updated.data.ctr;
-    if ("clicks" in updated.data) ad.context.clicks = updated.data.clicks;
   }
-  res.status(200);
+  console.log(type, count);
+
+  const updated = await new BackendApi().update<Partial<Interaction>>(`/ads/${ad.info.id}/interactions`, {
+    [type]: numberCount,
+  });
+
+  console.log({
+    updated,
+  });
+
+  if (!ad.context || !updated) return;
+  if ("views" in updated) ad.context.views = updated.views;
+  if ("ctr" in updated) ad.context.ctr = updated.ctr;
+  if ("clicks" in updated) ad.context.clicks = updated.clicks;
+
+  res.render("partials/product", {
+    product: ad,
+  });
 });

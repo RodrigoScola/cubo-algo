@@ -2,9 +2,8 @@ import { Router } from "express";
 import { Algo, SETTINGS_FLAGS, isSettingType } from "../Algo";
 import { BackendApi } from "../BackendApi";
 import { AppError, HTTPCodes } from "../ErrorHandler";
-import { LogTypes, isLogType } from "../logging/LogTypes";
 import { connection } from "../server";
-import { AdInfo, Interaction, NewAdInfo } from "../types/types";
+import { AdInfo, NewAdInfo } from "../types/types";
 
 export const testingRouter = Router();
 
@@ -24,9 +23,7 @@ testingRouter.post("/ads/new", async (req, res) => {
   };
 
   const jsona = await new BackendApi().post<AdInfo>("/ads", newAd);
-  res.send({
-    data: jsona?.data,
-  });
+  res.send(jsona);
 });
 
 testingRouter.get("/calculateScores", async (req, res) => {
@@ -108,30 +105,4 @@ testingRouter.put("/ads/settings", (req, res) => {
   res.render("partials/algoSettings", {
     algo: Algo,
   });
-});
-
-testingRouter.put("/ads/:adId/logging", async (req, res) => {
-  console.log("ahel");
-  if (!req.marketplace) {
-    throw new AppError({
-      description: "invalid Marketplace Id",
-      httpCode: HTTPCodes.BAD_REQUEST,
-    });
-  }
-  const ad = req.marketplace.getAd(Number(req.params["adId"]));
-
-  if (SETTINGS_FLAGS.countViews && "type" in req.query && isLogType(req.query.type as keyof typeof LogTypes)) {
-    if (ad) {
-      const updated = await new BackendApi().update<Partial<Interaction>>(`/ads/${ad.info.id}/interactions`, {
-        clicks: 3,
-      });
-
-      if (!ad.context || !updated || !updated.data) return;
-      if ("views" in updated.data) ad.context.views = updated.data.views;
-      if ("ctr" in updated.data) ad.context.ctr = updated.data.ctr;
-      if ("clicks" in updated.data) ad.context.clicks = updated.data.clicks;
-    }
-  }
-
-  res.status(200);
 });
