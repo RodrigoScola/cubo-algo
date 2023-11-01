@@ -110,7 +110,7 @@ class AdManager {
 }
 
 export class Marketplace {
-  productAds: AdInstance[];
+  productAds: AdManager;
 
   private ads: AdInstance[];
   private scoring: MarketplaceScoring;
@@ -120,6 +120,7 @@ export class Marketplace {
     this.id = id;
     this.scoring = new MarketplaceScoring();
     this.ads = [];
+    this.productAds = new AdManager(this.ads);
   }
   async setup() {
     const products = await connection("ads").select("*").where("marketplaceId", this.id).andWhere("isActive", 1);
@@ -128,30 +129,30 @@ export class Marketplace {
       this.addAd(product);
     });
     this.calculateScores();
-    return await Promise.all([AdHandler.getAdsContext(this.products.ads), this.saveScores()]);
+    return await Promise.all([AdHandler.getAdsContext(this.productAds.ads), this.saveScores()]);
   }
   start() {
-    this.products.ads.forEach((ad, i) => {
+    this.productAds.ads.forEach((ad, i) => {
       if (i < this.totalAdsPerBatch) {
         ad.inRotation = true;
       }
     });
   }
   calculateScores() {
-    this.scoring.calculateScore(this.products.ads);
-    this.products.ads = this.scoring.sortScores(this.products.ads);
+    this.scoring.calculateScore(this.productAds.ads);
+    this.productAds.ads = this.scoring.sortScores(this.productAds.ads);
   }
   async saveScores() {
     return await Promise.all(
-      this.products.ads.map((ad) => {
+      this.productAds.ads.map((ad) => {
         return connection("ads").update({ score: ad.score }).where("id", ad.info.id);
       })
     );
   }
-  getAds(type: "product" | "banner"): AdContext[] {
+  getAds(): AdContext[] {
     return this.ads.reduce((acc: AdContext[], item) => {
-      if (item.inRotation && item.context && item.type === type) {
-        acc.push(item.context);
+      if (item.inRotation && item.canGetInRotation()) {
+        acc.push(item.context!);
       }
       return acc;
     }, []);
@@ -160,10 +161,10 @@ export class Marketplace {
     return this.ads;
   }
   getAd(id: number): AdInstance | undefined {
-    return this.products.ads.find((ad) => ad.info.id === id);
+    return this.productAds.ads.find((ad) => ad.info.id === id);
   }
   reset() {
-    this.products.ads = [];
+    this.productAds.ads = [];
 
     return connection("ads").update({ score: 0 }).where("marketplaceId", this.id).andWhere("isActive", 1);
   }
