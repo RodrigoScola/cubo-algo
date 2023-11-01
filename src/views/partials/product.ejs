@@ -1,11 +1,7 @@
-  <div class="font-bold px-3 w-full <%= product.inRotation ? 'outline outline-yellow-200' : 'outline outline-red-500' %>">
+  <div id="product_<%= product.info.id %>" class="font-bold px-3 w-full <%= product.inRotation ? 'outline outline-yellow-200' : 'outline outline-red-500' %>">
 
-    <% if (product.inRotation) { %>
-    <div hx-trigger="load" hx-get="/testing/ads/<%= product.info.id %>/logging/?type=view">
-    </div>
 
-    <% } %>
-    <h3 class="pt-4"><%= product.currentContext.title %></h3>
+    <h3 class="pt-4 sm:text-sm text-xs md:text-md lg:text-lg "><%= product.context.name %></h3>
 
 
     <div style="display: flex;">
@@ -17,8 +13,8 @@
 
     </div>
     <div class="flex">
-      <% for (let j =0 ; j < product.currentContext.images.length; j++) { %>
-      <% const image = product.currentContext.images[j] %>
+      <% for (let j =0 ; j < product.context.images.length; j++) { %>
+      <% const image = product.context.images[j] %>
       <img src="<%= image.url %>" alt="<%= image.alt %>" class="w-14" />
 
 
@@ -27,12 +23,46 @@
     </div>
     <div class="flex gap-3 justify-center">
       <p class=" font-light text-sm py-2">Id: <%= product.info.id %></p>
-      <p class=" font-light text-sm py-2">views: <%= product.currentContext.views %></p>
-      <p class=" font-light text-sm py-2">clicks: <%= product.currentContext.clicks %></p>
+      <p class=" font-light text-sm py-2">views: <%= product.context.views %></p>
+      <p class=" font-light text-sm py-2">clicks: <%= product.context.clicks %></p>
+      <p class=" font-light text-sm py-2">ctr: <%= product.context.ctr %></p>
     </div>
-    <div class="flex justify-around cursor-pointer">
-      <div hx-trigger="click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light">
-        add view
+
+    <div>
+      <h3 class="pb-2">Interactions</h3>
+      <div class="flex flex-row ">
+
+        <div class="gap-3 flex flex-col "">
+    <div hx-trigger=" click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light">
+          <label>
+            Set Views
+            <input value="<%= product.context.views %>" class="text-black" type="number" min="<%= product.context.views %>" />
+          </label>
+        </div>
+        <div class="flex justify-around cursor-pointer">
+          <div hx-trigger="click" hx-swap="outerHTML" hx-target="#product_<%= product.info.id %>" hx-put="/ads/<%= product.info.id %>/interactions/?type=views&count=1" class="text-xs font-light">
+            add view
+          </div>
+        </div>
+      </div>
+
+      <div class="gap-3 flex flex-col "">
+    <div hx-trigger=" click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light">
+        <label>
+          Set Clicks
+          <input value="<%= product.context.clicks %>" class="text-black" type="number" min="<%= product.context.clicks %>" />
+        </label>
+      </div>
+      <div class="flex justify-around cursor-pointer">
+        <div hx-trigger="click" hx-swap="outerHTML" hx-target="#product_<%= product.info.id %>" hx-put="/ads/<%= product.info.id %>/interactions/?type=clicks&count=1" class="text-xs font-light">
+          add click
+        </div>
       </div>
     </div>
+
+  </div>
+
+  </div>
+
+
   </div>

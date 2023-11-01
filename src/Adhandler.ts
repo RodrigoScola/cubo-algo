@@ -9,6 +9,9 @@ export class AdHandler {
   static async getAdsContext(info: AdInstance[]): Promise<(AdContext | undefined)[]> {
     return await Promise.all(
       info.map((ad) => {
+        if (ad.context) {
+          return ad.context;
+        }
         return ad.getContext();
       })
     );
@@ -45,7 +48,6 @@ export class AdHandler {
     const [skus] = await connection.raw(`
     select sum(si.totalQuantity) as totalQuantity, si.skuId, s.productId from sku_inventory as si left join sku as s on si.skuId = s.id where s.productId = ${ad.productId} group by skuId order by totalQuantity desc
     `);
-    const skuId = skus[0].skuId;
-    return skuId;
+    return skus[0].skuId;
   }
 }

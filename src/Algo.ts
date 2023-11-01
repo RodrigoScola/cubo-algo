@@ -14,7 +14,9 @@ export class Algo {
   constructor() {
     Algo.marketplaces = new Map();
   }
-  static getMarketPlace(id: number) {
+  static getMarketPlace(id: number): Marketplace | undefined {
+    console.log("this are all the mp", this.marketplaces);
+    console.log("this is the id ", id);
     return this.marketplaces.get(id);
   }
   static reset() {
@@ -27,21 +29,22 @@ export class Algo {
   static async setup() {
     const marketPlaceNames = [1];
     await Promise.all(
-      marketPlaceNames.map((marketplaceId) => {
+      marketPlaceNames.map((marketplaceId: number) => {
         const market = new Marketplace(marketplaceId);
         Algo.marketplaces.set(marketplaceId, market);
+
         return market.setup();
       })
     );
   }
 
   static start() {
-    this.marketplaces.forEach((marketplace) => {
+    this.marketplaces.forEach((marketplace: Marketplace) => {
       marketplace.start();
     });
   }
   static refresh() {
-    Algo.marketplaces.forEach((market) => {
+    Algo.marketplaces.forEach((market: Marketplace) => {
       market.refresh();
     });
   }
