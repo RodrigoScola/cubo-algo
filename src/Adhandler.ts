@@ -1,6 +1,6 @@
-import {AdInstance} from "./marketplace";
-import {connection} from "./server";
-import {AdContext, AdInfo, NewAdInfo} from "./types/types";
+import { AdInstance } from "./marketplace";
+import { connection } from "./server";
+import { AdContext, AdInfo, NewAdInfo } from "./types/types";
 
 export class AdHandler {
   getContext(adInfo: AdInfo) {
@@ -9,6 +9,9 @@ export class AdHandler {
   static async getAdsContext(info: AdInstance[]): Promise<(AdContext | undefined)[]> {
     return await Promise.all(
       info.map((ad) => {
+        if (ad.context) {
+          return ad.context;
+        }
         return ad.getContext();
       })
     );

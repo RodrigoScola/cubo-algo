@@ -15,6 +15,8 @@ export class Algo {
     Algo.marketplaces = new Map();
   }
   static getMarketPlace(id: number): Marketplace | undefined {
+    console.log("this are all the mp", this.marketplaces);
+    console.log("this is the id ", id);
     return this.marketplaces.get(id);
   }
   static reset() {

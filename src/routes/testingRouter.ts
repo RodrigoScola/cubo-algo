@@ -9,21 +9,27 @@ export const testingRouter = Router();
 
 testingRouter.get("/ads", (req, res) => {
   const data = req.marketplace?.getAllAds();
-  console.log({
-    a: req.marketplace?.productAds.map((c) => c.context?.views),
-  });
   res.render("home", { data: { products: data } });
 });
 testingRouter.post("/ads/new", async (req, res) => {
-  const newAd: NewAdInfo = {
+  const newAdInfo: NewAdInfo = {
     adType: "product",
     productId: Number(req.body.productId),
     marketplaceId: Number(req.body.marketplaceId),
     price: Number(req.body.price),
   };
 
-  const jsona = await new BackendApi().post<AdInfo>("/ads", newAd);
-  res.send(jsona);
+  const newAd = await new BackendApi().post<AdInfo>("/ads", newAdInfo);
+
+  if (newAd) {
+    const marketplace = Algo.getMarketPlace(newAd.marketplaceId);
+
+    console.log(`🚀 ~ file: testingRouter.ts:32 ~ testingRouter.post ~ marketplace:`, marketplace);
+
+    marketplace?.addAd(newAd);
+  }
+
+  res.send(newAd);
 });
 
 testingRouter.get("/calculateScores", async (req, res) => {
@@ -66,7 +72,7 @@ testingRouter.get("/reset", async (req, res) => {
 });
 
 testingRouter.get("/purge", async (_, res) => {
-  await connection.delete().from("ads");
+  await Promise.all([connection.delete().from("ads"), connection.delete().from("interactions")]);
 
   await Algo.setup();
   Algo.start();

@@ -27,7 +27,7 @@ export class BackendApi {
       body: JSON.stringify(item),
     });
     if (data.ok) {
-      return await data.json();
+      return data.json();
     }
     return;
   }

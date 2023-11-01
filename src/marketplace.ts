@@ -63,6 +63,10 @@ export class AdInstance {
     this.inRotation = false;
   }
 
+  canGetInRotation() {
+    return !!this.context;
+  }
+
   get score() {
     return this.scoring.score || 0;
   }
@@ -140,14 +144,15 @@ export class Marketplace {
   }
   getAds(): AdContext[] {
     return this.ads.reduce((acc: AdContext[], item) => {
-      if (item.inRotation && item.context) {
-        acc.push(item.context);
+      if (item.inRotation && item.canGetInRotation()) {
+        console.log("this is the item", item);
+        acc.push(item.context!);
       }
       return acc;
     }, []);
   }
   getAllAds() {
-    return this.ads;
+    return this.ads.filter((ad) => ad.canGetInRotation());
   }
   getAd(id: number): AdInstance | undefined {
     return this.ads.find((ad) => ad.info.id === id);
@@ -158,7 +163,7 @@ export class Marketplace {
     return connection("ads").update({ score: 0 }).where("marketplaceId", this.id).andWhere("isActive", 1);
   }
   async refresh() {
-    await Promise.all([this.calculateScores(), this.saveScores()]);
+    await Promise.all([AdHandler.getAdsContext(this.ads), this.calculateScores(), this.saveScores()]);
     for (let i = 0; i < this.ads.length; i++) {
       const ad = this.ads[i];
       if (!ad) continue;

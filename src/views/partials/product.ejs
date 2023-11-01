@@ -1,7 +1,7 @@
   <div id="product_<%= product.info.id %>" class="font-bold px-3 w-full <%= product.inRotation ? 'outline outline-yellow-200' : 'outline outline-red-500' %>">
 
 
-    <h3 class="pt-4 sm:text-sm text-xs md:text-md lg:text-lg "><%= product.context.title %></h3>
+    <h3 class="pt-4 sm:text-sm text-xs md:text-md lg:text-lg "><%= product.context.name %></h3>
 
 
     <div style="display: flex;">
@@ -36,13 +36,7 @@
     <div hx-trigger=" click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light">
           <label>
             Set Views
-            <input class="text-black" type="number" min="0" />
-          </label>
-        </div>
-        <div hx-trigger="click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light">
-          <label>
-            Add Views
-            <input class="text-black" type="number" min="0" />
+            <input value="<%= product.context.views %>" class="text-black" type="number" min="<%= product.context.views %>" />
           </label>
         </div>
         <div class="flex justify-around cursor-pointer">
@@ -56,15 +50,8 @@
     <div hx-trigger=" click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light">
         <label>
           Set Clicks
-          <input class="text-black" type="number" min="0" />
+          <input value="<%= product.context.clicks %>" class="text-black" type="number" min="<%= product.context.clicks %>" />
         </label>
-      </div>
-      <div hx-trigger="click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=clicks&count=1" class="text-xs font-light">
-        <label>
-          Add Clicks
-          <input class="text-black" type="number" min="0" />
-        </label>
-
       </div>
       <div class="flex justify-around cursor-pointer">
         <div hx-trigger="click" hx-swap="outerHTML" hx-target="#product_<%= product.info.id %>" hx-put="/ads/<%= product.info.id %>/interactions/?type=clicks&count=1" class="text-xs font-light">

@@ -28,7 +28,7 @@ adsInteractionsRouter.put("/", async (req, res) => {
     });
   }
 
-  if (!req.marketplace) {
+  if (!req.marketplace || !("adId" in req.params)) {
     throw new AppError({
       description: "invalid Marketplace Id",
       httpCode: HTTPCodes.BAD_REQUEST,
@@ -42,7 +42,6 @@ adsInteractionsRouter.put("/", async (req, res) => {
       httpCode: HTTPCodes.BAD_REQUEST,
     });
   }
-  console.log(type, count);
 
   const updated = await new BackendApi().update<Partial<Interaction>>(`/ads/${ad.info.id}/interactions`, {
     [type]: numberCount,
