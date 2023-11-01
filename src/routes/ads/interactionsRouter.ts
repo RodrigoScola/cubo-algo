@@ -60,3 +60,34 @@ adsInteractionsRouter.put("/", async (req, res) => {
     product: ad,
   });
 });
+
+adsInteractionsRouter.post("/", async (req, res) => {
+  const { clicks, views } = req.body;
+
+  const numberClicks = Number(clicks);
+  const numberViews = Number(views);
+
+  if (!("adId" in req.params)) {
+    throw new AppError({
+      description: "invalid Ad Id",
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
+
+  if (!numberClicks || !numberViews) {
+    throw new AppError({
+      description: "Invalid Body",
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
+  const updatedAdInteraction = await new BackendApi().post(`/ads/${req.params.adId}/interactions`, {
+    clicks: numberClicks,
+    views: numberViews,
+  });
+
+  console.log({
+    updatedAdInteraction,
+  });
+
+  res.sendStatus(400);
+});
