@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppError = exports.ErrorHandler = exports.HTTPCodes = void 0;
+exports.NOT_FOUND_ERROR = exports.AppError = exports.ErrorHandler = exports.HTTPCodes = void 0;
 var HTTPCodes;
 (function (HTTPCodes) {
     HTTPCodes[HTTPCodes["OK"] = 200] = "OK";
@@ -58,3 +58,17 @@ class AppError extends Error {
     }
 }
 exports.AppError = AppError;
+class NOT_FOUND_ERROR extends Error {
+    constructor(args) {
+        super(args.description);
+        this.isOperational = true;
+        Object.setPrototypeOf(this, new.target.prototype);
+        this.name = args.name || "Error";
+        this.httpCode = HTTPCodes.NOT_FOUND;
+        if (args.isOperational !== undefined) {
+            this.isOperational = args.isOperational;
+        }
+        Error.captureStackTrace(this);
+    }
+}
+exports.NOT_FOUND_ERROR = NOT_FOUND_ERROR;

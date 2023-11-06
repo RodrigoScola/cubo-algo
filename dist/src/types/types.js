@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SkuFileObject = exports.NewSkuFileObject = exports.UpdatingSkuInventoryObject = exports.SkuInventoryInfoObject = exports.NewSkuInventoryObject = exports.SkuInfoObject = exports.NewSkuInfoObject = exports.ProductInfoObject = exports.NewProductInfoObject = exports.UpdatingAdInfoObject = exports.MarketplaceObj = exports.AdInfoObject = exports.NewAdInfoObject = void 0;
+exports.SkuFileObject = exports.NewSkuFileObject = exports.UpdatingSkuInventoryObject = exports.SkuInventoryInfoObject = exports.NewSkuInventoryObject = exports.SkuInfoObject = exports.NewSkuInfoObject = exports.ProductInfoObject = exports.NewProductInfoObject = exports.UpdatingAdInfoObject = exports.MarketplaceObj = exports.InteractionObject = exports.NewInteractionObject = exports.AdInfoObject = exports.NewAdInfoObject = void 0;
 exports.NewAdInfoObject = {
     marketplaceId: 3,
     price: 300,
@@ -8,6 +8,12 @@ exports.NewAdInfoObject = {
     adType: "",
 };
 exports.AdInfoObject = Object.assign(Object.assign({}, exports.NewAdInfoObject), { score: 9, isActive: true, skuId: 0, id: 0 });
+exports.NewInteractionObject = {
+    clicks: 0,
+    views: 0,
+    ctr: 0,
+};
+exports.InteractionObject = Object.assign(Object.assign({}, exports.NewInteractionObject), { id: 0 });
 exports.MarketplaceObj = {
     id: 9,
     name: "wecode",

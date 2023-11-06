@@ -63,7 +63,7 @@ testingRouter.get("/reset", async (req, res) => {
   await marketplace.reset();
   await marketplace.setup();
   marketplace.start();
-  const ads = marketplace.getAds("product");
+  const ads = marketplace.getAds();
   return res.render("home", {
     data: {
       products: ads,

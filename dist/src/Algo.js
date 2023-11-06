@@ -9,8 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Algo = exports.SETTINGS_FLAGS = void 0;
+exports.Algo = exports.SETTINGS_FLAGS = exports.isSettingType = void 0;
 const marketplace_1 = require("./marketplace");
+function isSettingType(settingName) {
+    return Object.keys(exports.SETTINGS_FLAGS).includes(settingName);
+}
+exports.isSettingType = isSettingType;
 exports.SETTINGS_FLAGS = {
     viewWeight: 1,
     countViews: true,

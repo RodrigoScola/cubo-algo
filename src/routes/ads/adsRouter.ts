@@ -11,7 +11,6 @@ adsRouter.get("/", (req, res) => {
 });
 
 adsRouter.put("/", (_, res) => {
-  console.log("aaaaaaaaaaaa");
   res.send({
     a: "a",
   });

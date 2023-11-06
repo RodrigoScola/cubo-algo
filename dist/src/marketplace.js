@@ -11,17 +11,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Marketplace = exports.AdInstance = void 0;
 const Adhandler_1 = require("./Adhandler");
-const Algo_1 = require("./Algo");
 const server_1 = require("./server");
 class MarketplaceScoring {
     calculateScore(instances) {
-        const max = instances[0];
         instances.forEach((instance) => {
-            var _a;
-            if (Algo_1.SETTINGS_FLAGS.exponentialBackoff) {
-                const score = (_a = max === null || max === void 0 ? void 0 : max.score) !== null && _a !== void 0 ? _a : 0;
-                instance.addScore(Math.floor(Math.random() * instance.info.price) % score);
-            }
+            if (instance.context && "views" in instance.context)
+                instance.scoring.add(instance.context.ctr);
             instance.calculateScore();
         });
     }
@@ -32,33 +27,40 @@ class MarketplaceScoring {
 class Scoring {
     constructor(initialScore) {
         this.numbers = [initialScore];
-        this.score = initialScore;
+        this._score = initialScore;
         this.baseScore = initialScore;
+    }
+    get score() {
+        return this._score;
     }
     add(num) {
         this.numbers.push(num);
     }
+    set(num) {
+        this._score = num;
+    }
     calculate() {
-        this.score = 0;
+        this._score = 0;
         this.numbers.forEach((number) => {
-            this.score += number;
+            this._score += number;
         });
+        this.numbers = [];
         return this.score;
     }
     reset() {
         this.numbers = [];
-        this.score = this.baseScore;
+        this._score = this.baseScore;
     }
 }
 class AdInstance {
     constructor(info) {
         this.type = "product";
         this.info = info;
-        this.scoring = new Scoring(info.price);
+        this.scoring = new Scoring(0);
         this.inRotation = false;
-        this.properties = {
-            views: 0,
-        };
+    }
+    canGetInRotation() {
+        return !!this.context;
     }
     get score() {
         return this.scoring.score || 0;
@@ -66,13 +68,8 @@ class AdInstance {
     addScore(num) {
         this.scoring.add(num);
     }
-    get context() {
-        if (!this.currentContext) {
-            return undefined;
-        }
-        return Object.assign(Object.assign({}, this.currentContext), { score: this.score });
-    }
     getContext() {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
             if (this.context) {
                 return Promise.resolve(this.context);
@@ -85,7 +82,8 @@ class AdInstance {
                 this.info.skuId = skuId;
             }
             const context = yield Adhandler_1.AdHandler.getContext(this.info);
-            return (this.currentContext = Object.assign(Object.assign({}, context), { score: this.score }));
+            this.scoring.set((_a = context === null || context === void 0 ? void 0 : context.ctr) !== null && _a !== void 0 ? _a : 0);
+            return (this.context = Object.assign(Object.assign({}, context), { score: this.score }));
         });
     }
     calculateScore() {
@@ -94,44 +92,50 @@ class AdInstance {
     }
 }
 exports.AdInstance = AdInstance;
+class AdManager {
+    constructor(adInstances) {
+        this.ads = adInstances;
+    }
+}
 class Marketplace {
     constructor(id) {
         this.totalAdsPerBatch = 3;
         this.id = id;
         this.scoring = new MarketplaceScoring();
         this.ads = [];
+        this.productAds = new AdManager(this.ads);
     }
     setup() {
         return __awaiter(this, void 0, void 0, function* () {
-            const products = yield (0, server_1.connection)("ads").select("*").where("marketplaceId", this.id);
+            const products = yield (0, server_1.connection)("ads").select("*").where("marketplaceId", this.id).andWhere("isActive", 1);
             products.forEach((product) => {
                 this.addAd(product);
             });
             this.calculateScores();
-            return yield Promise.all([Adhandler_1.AdHandler.getAdsContext(this.ads), this.saveScores()]);
+            return yield Promise.all([Adhandler_1.AdHandler.getAdsContext(this.productAds.ads), this.saveScores()]);
         });
     }
     start() {
-        this.ads.forEach((ad, i) => {
+        this.productAds.ads.forEach((ad, i) => {
             if (i < this.totalAdsPerBatch) {
                 ad.inRotation = true;
             }
         });
     }
     calculateScores() {
-        this.scoring.calculateScore(this.ads);
-        this.ads = this.scoring.sortScores(this.ads);
+        this.scoring.calculateScore(this.productAds.ads);
+        this.productAds.ads = this.scoring.sortScores(this.productAds.ads);
     }
     saveScores() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield Promise.all(this.ads.map((ad) => {
+            return yield Promise.all(this.productAds.ads.map((ad) => {
                 return (0, server_1.connection)("ads").update({ score: ad.score }).where("id", ad.info.id);
             }));
         });
     }
-    getAds(type) {
+    getAds() {
         return this.ads.reduce((acc, item) => {
-            if (item.inRotation && item.context && item.type === type) {
+            if (item.inRotation && item.canGetInRotation()) {
                 acc.push(item.context);
             }
             return acc;
@@ -141,11 +145,11 @@ class Marketplace {
         return this.ads;
     }
     getAd(id) {
-        return this.ads.find((ad) => ad.info.id === id);
+        return this.productAds.ads.find((ad) => ad.info.id === id);
     }
     reset() {
-        this.ads = [];
-        return (0, server_1.connection)("ads").update({ score: 0 }).where("marketplaceId", this.id);
+        this.productAds.ads = [];
+        return (0, server_1.connection)("ads").update({ score: 0 }).where("marketplaceId", this.id).andWhere("isActive", 1);
     }
     refresh() {
         return __awaiter(this, void 0, void 0, function* () {

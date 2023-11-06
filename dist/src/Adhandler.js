@@ -18,14 +18,11 @@ class AdHandler {
     static getAdsContext(info) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield Promise.all(info.map((ad) => {
+                if (ad.context) {
+                    return ad.context;
+                }
                 return ad.getContext();
             }));
-        });
-    }
-    static postProduct(info) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const sku = yield AdHandler.getBestSku(info);
-            return (0, server_1.connection)("ads").insert(Object.assign(Object.assign({}, info), { adType: "product", skuId: sku }));
         });
     }
     static getContext(adInfo) {
@@ -34,6 +31,9 @@ class AdHandler {
                 .select("*")
                 .join("sku", function () {
                 this.on("ads.skuId", "=", "sku.id");
+            })
+                .join("interactions", function () {
+                this.on("interactions.id", "=", "ads.id");
             })
                 .where("ads.id", adInfo.id)
                 .andWhere("ads.productId", adInfo.productId)
@@ -54,8 +54,7 @@ class AdHandler {
             const [skus] = yield server_1.connection.raw(`
     select sum(si.totalQuantity) as totalQuantity, si.skuId, s.productId from sku_inventory as si left join sku as s on si.skuId = s.id where s.productId = ${ad.productId} group by skuId order by totalQuantity desc
     `);
-            const skuId = skus[0].skuId;
-            return skuId;
+            return skus[0].skuId;
         });
     }
 }
