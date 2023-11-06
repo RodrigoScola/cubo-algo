@@ -13,7 +13,6 @@ exports.appRouter = void 0;
 const express_1 = require("express");
 const Algo_1 = require("../Algo");
 const ErrorHandler_1 = require("../ErrorHandler");
-const constants_1 = require("../constants");
 const server_1 = require("../server");
 const adsRouter_1 = require("./ads/adsRouter");
 const interactionsRouter_1 = require("./ads/interactionsRouter");
@@ -21,9 +20,13 @@ const testingRouter_1 = require("./testingRouter");
 exports.appRouter = (0, express_1.Router)();
 exports.appRouter.use(["/ads", "/testing"], (req, _, next) => __awaiter(void 0, void 0, void 0, function* () {
     let marketplaceName = req.headers["marketplace"];
-    if (constants_1.__DEV__) {
-        marketplaceName = "wecode";
-    }
+    marketplaceName = "wecode";
+    // if (!marketplaceName) {
+    //   throw new AppError({
+    //     description: "invalid Marketplace Id",
+    //     httpCode: HTTPCodes.BAD_REQUEST,
+    //   });
+    // }
     const { id } = yield server_1.connection
         .select("id")
         .from("marketplaces")
