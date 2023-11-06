@@ -5,9 +5,7 @@ export const adsRouter = Router();
 adsRouter.get("/", (req, res) => {
   const data = req.marketplace?.getAds();
 
-  res.send({
-    data: data,
-  });
+  res.send(data);
 });
 
 adsRouter.put("/", (_, res) => {
@@ -17,7 +15,5 @@ adsRouter.put("/", (_, res) => {
 });
 adsRouter.get("/products", (req, res) => {
   const data = req.marketplace?.getAds();
-  res.send({
-    data: data,
-  });
+  res.send(data);
 });

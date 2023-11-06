@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { Algo } from "../Algo";
-import { NOT_FOUND_ERROR } from "../ErrorHandler";
+import { AppError, HTTPCodes, NOT_FOUND_ERROR } from "../ErrorHandler";
+import { __DEV__ } from "../constants";
 import { connection } from "../server";
 import { adsRouter } from "./ads/adsRouter";
 import { adsInteractionsRouter } from "./ads/interactionsRouter";
@@ -11,13 +12,15 @@ export const appRouter = Router();
 appRouter.use(["/ads", "/testing"], async (req, _, next) => {
   let marketplaceName = req.headers["marketplace"];
 
-  marketplaceName = "wecode";
-  // if (!marketplaceName) {
-  //   throw new AppError({
-  //     description: "invalid Marketplace Id",
-  //     httpCode: HTTPCodes.BAD_REQUEST,
-  //   });
-  // }
+  if (__DEV__) {
+    marketplaceName = "wecode";
+  }
+  if (!marketplaceName) {
+    throw new AppError({
+      description: "invalid Marketplace Id",
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
   const { id } = await connection
     .select("id")
     .from("marketplaces")
