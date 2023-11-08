@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NOT_FOUND_ERROR = exports.AppError = exports.ErrorHandler = exports.HTTPCodes = void 0;
+exports.InvalidIdError = exports.InternalError = exports.NotFoundError = exports.BadRequestError = exports.AppError = exports.ErrorHandler = exports.HTTPCodes = void 0;
 var HTTPCodes;
 (function (HTTPCodes) {
     HTTPCodes[HTTPCodes["OK"] = 200] = "OK";
@@ -12,8 +12,7 @@ var HTTPCodes;
     HTTPCodes[HTTPCodes["REFUSED"] = 418] = "REFUSED";
     HTTPCodes[HTTPCodes["NOT_FOUND"] = 404] = "NOT_FOUND";
     HTTPCodes[HTTPCodes["INTERNAL_SERVER_ERROR"] = 500] = "INTERNAL_SERVER_ERROR";
-    HTTPCodes[HTTPCodes["NOT_IMPLEMENTED"] = 501] = "NOT_IMPLEMENTED";
-})(HTTPCodes = exports.HTTPCodes || (exports.HTTPCodes = {}));
+})(HTTPCodes || (exports.HTTPCodes = HTTPCodes = {}));
 class ErrorHandler {
     static isTrustedError(error) {
         if (error instanceof AppError) {
@@ -58,17 +57,45 @@ class AppError extends Error {
     }
 }
 exports.AppError = AppError;
-class NOT_FOUND_ERROR extends Error {
-    constructor(args) {
-        super(args.description);
+class BadRequestError {
+    constructor(message) {
         this.isOperational = true;
-        Object.setPrototypeOf(this, new.target.prototype);
-        this.name = args.name || "Error";
-        this.httpCode = HTTPCodes.NOT_FOUND;
-        if (args.isOperational !== undefined) {
-            this.isOperational = args.isOperational;
-        }
-        Error.captureStackTrace(this);
+        throw new AppError({
+            description: message,
+            httpCode: HTTPCodes.BAD_REQUEST,
+        });
     }
 }
-exports.NOT_FOUND_ERROR = NOT_FOUND_ERROR;
+exports.BadRequestError = BadRequestError;
+class NotFoundError {
+    constructor(message) {
+        this.isOperational = true;
+        throw new AppError({
+            description: message,
+            httpCode: HTTPCodes.NOT_FOUND,
+        });
+    }
+}
+exports.NotFoundError = NotFoundError;
+class InternalError {
+    constructor(message = "Something Wrong Happened") {
+        this.isOperational = true;
+        this.httpCode = HTTPCodes.INTERNAL_SERVER_ERROR;
+        throw new AppError({
+            description: message,
+            httpCode: HTTPCodes.INTERNAL_SERVER_ERROR,
+        });
+    }
+}
+exports.InternalError = InternalError;
+class InvalidIdError {
+    constructor(message = "Invalid Id") {
+        this.isOperational = true;
+        this.httpCode = HTTPCodes.INTERNAL_SERVER_ERROR;
+        throw new AppError({
+            description: message,
+            httpCode: HTTPCodes.BAD_REQUEST,
+        });
+    }
+}
+exports.InvalidIdError = InvalidIdError;

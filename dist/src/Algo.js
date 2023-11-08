@@ -58,5 +58,5 @@ class Algo {
         });
     }
 }
-Algo.marketplaces = new Map();
 exports.Algo = Algo;
+Algo.marketplaces = new Map();

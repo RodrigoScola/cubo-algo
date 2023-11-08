@@ -43,6 +43,7 @@ class AdHandler {
                 .first());
             const imagesPromise = (0, server_1.connection)("sku_file").select("isMain", "url", "name").where("skuId", adInfo.skuId);
             const [item, images] = yield Promise.all([itemPromise, imagesPromise]);
+            console.log(item, images);
             if (!item)
                 return;
             item.images = images;

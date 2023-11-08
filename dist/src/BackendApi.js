@@ -30,17 +30,20 @@ class BackendApi {
     update(url, item) {
         return __awaiter(this, void 0, void 0, function* () {
             const newUrl = `${constants_1.SERVER_URL}${url}`;
-            console.log(`🚀 ~ file: BackendApi.ts:9 ~ BackendApi ~ update ~ newUrl:`, newUrl);
-            const data = yield fetch(newUrl, {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                method: "PUT",
-                body: JSON.stringify(item),
-            });
-            if (data.ok) {
-                return data.json();
+            try {
+                const data = yield fetch(newUrl, {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    method: "PUT",
+                    body: JSON.stringify(item),
+                });
+                if (data.ok) {
+                    return yield data.json();
+                }
+                return;
             }
+            catch (err) { }
             return;
         });
     }

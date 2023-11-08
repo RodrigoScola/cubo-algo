@@ -15,6 +15,7 @@ const Algo_1 = require("../Algo");
 const BackendApi_1 = require("../BackendApi");
 const ErrorHandler_1 = require("../ErrorHandler");
 const server_1 = require("../server");
+const types_1 = require("../types/types");
 exports.testingRouter = (0, express_1.Router)();
 exports.testingRouter.get("/ads", (req, res) => {
     var _a;
@@ -24,17 +25,14 @@ exports.testingRouter.get("/ads", (req, res) => {
 exports.testingRouter.post("/ads/new", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const newAdInfo = {
         adType: "product",
+        status: types_1.PostStatus.ACTIVE,
         productId: Number(req.body.productId),
         marketplaceId: Number(req.body.marketplaceId),
         price: Number(req.body.price),
     };
-    const newAd = yield new BackendApi_1.BackendApi().post("/ads", newAdInfo);
-    if (newAd) {
-        const marketplace = Algo_1.Algo.getMarketPlace(newAd.marketplaceId);
-        console.log(`🚀 ~ file: testingRouter.ts:32 ~ testingRouter.post ~ marketplace:`, marketplace);
-        marketplace === null || marketplace === void 0 ? void 0 : marketplace.addAd(newAd);
-    }
-    res.send(newAd);
+    const jsona = yield new BackendApi_1.BackendApi().post("/ads", newAdInfo);
+    console.log(jsona);
+    res.send(jsona);
 }));
 exports.testingRouter.get("/calculateScores", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const marketplace = req.marketplace;
@@ -82,6 +80,28 @@ exports.testingRouter.get("/ads/settings", (_, res) => {
     });
 });
 exports.testingRouter.put("/ads/settings", (req, res) => {
+    if (!req.marketplace) {
+        throw new ErrorHandler_1.AppError({
+            description: "invalid Marketplace Id",
+            httpCode: ErrorHandler_1.HTTPCodes.BAD_REQUEST,
+        });
+    }
+    const settingType = req.query["setting"];
+    const isSetting = (0, Algo_1.isSettingType)(settingType);
+    if (typeof settingType !== "string" && !isSetting) {
+        throw new ErrorHandler_1.AppError({
+            description: "invalid Setting description",
+            httpCode: ErrorHandler_1.HTTPCodes.BAD_REQUEST,
+        });
+    }
+    if (isSetting && typeof Algo_1.SETTINGS_FLAGS[settingType] === "boolean") {
+        Algo_1.SETTINGS_FLAGS[settingType] = !Algo_1.SETTINGS_FLAGS[settingType];
+    }
+    res.render("partials/algoSettings", {
+        algo: Algo_1.Algo,
+    });
+});
+exports.testingRouter.put("/ads/", (req, res) => {
     if (!req.marketplace) {
         throw new ErrorHandler_1.AppError({
             description: "invalid Marketplace Id",

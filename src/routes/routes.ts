@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Algo } from "../Algo";
-import { AppError, HTTPCodes, NOT_FOUND_ERROR } from "../ErrorHandler";
+import { AppError, HTTPCodes } from "../ErrorHandler";
 import { connection } from "../server";
 import { adsRouter } from "./ads/adsRouter";
 import { adsInteractionsRouter } from "./ads/interactionsRouter";
@@ -27,7 +27,7 @@ appRouter.use(["/ads", "/testing"], async (req, _, next) => {
 
   const marketplace = Algo.getMarketPlace(id);
   if (!marketplace) {
-    throw new NOT_FOUND_ERROR({ description: `Marketplace ${id} not found` });
+    throw new AppError({ description: `Marketplace ${id} not found`, httpCode: HTTPCodes.NOT_FOUND });
   }
   req.marketplace = marketplace;
   next();

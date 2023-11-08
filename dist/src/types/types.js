@@ -1,13 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SkuFileObject = exports.NewSkuFileObject = exports.UpdatingSkuInventoryObject = exports.SkuInventoryInfoObject = exports.NewSkuInventoryObject = exports.SkuInfoObject = exports.NewSkuInfoObject = exports.ProductInfoObject = exports.NewProductInfoObject = exports.UpdatingAdInfoObject = exports.MarketplaceObj = exports.InteractionObject = exports.NewInteractionObject = exports.AdInfoObject = exports.NewAdInfoObject = void 0;
+exports.SkuFileObject = exports.NewSkuFileObject = exports.UpdatingSkuInventoryObject = exports.SkuInventoryInfoObject = exports.NewSkuInventoryObject = exports.SkuInfoObject = exports.NewSkuInfoObject = exports.ProductInfoObject = exports.NewProductInfoObject = exports.UpdatingAdInfoObject = exports.MarketplaceObj = exports.InteractionObject = exports.NewInteractionObject = exports.AdInfoObject = exports.NewAdInfoObject = exports.PostStatus = void 0;
+exports.PostStatus = {
+    ACTIVE: 1,
+    INACTIVE: 0,
+};
 exports.NewAdInfoObject = {
     marketplaceId: 3,
     price: 300,
     productId: 3,
     adType: "",
+    status: 0,
 };
-exports.AdInfoObject = Object.assign(Object.assign({}, exports.NewAdInfoObject), { score: 9, isActive: true, skuId: 0, id: 0 });
+exports.AdInfoObject = Object.assign(Object.assign({}, exports.NewAdInfoObject), { score: 9, status: 0, skuId: 0, id: 0 });
 exports.NewInteractionObject = {
     clicks: 0,
     views: 0,
@@ -54,7 +59,7 @@ exports.ProductInfoObject = Object.assign(Object.assign({}, exports.NewProductIn
 exports.NewSkuInfoObject = {
     isPersisted: false,
     productId: 0,
-    isActive: true,
+    status: 0,
     name: "",
     height: 0,
     realHeight: 0,
@@ -96,7 +101,7 @@ exports.NewSkuInventoryObject = {
     timeToRefill: null,
     dateOfSupplyUtc: null,
     leadTime: "00:00:00",
-    isActive: true,
+    status: 0,
     skuId: 0,
 };
 exports.SkuInventoryInfoObject = Object.assign({ id: 0 }, exports.NewSkuInventoryObject);
@@ -109,7 +114,7 @@ exports.UpdatingSkuInventoryObject = {
     timeToRefill: null,
     dateOfSupplyUtc: null,
     leadTime: "00:00:00",
-    isActive: true,
+    status: 0,
 };
 exports.NewSkuFileObject = {
     archiveId: 0,

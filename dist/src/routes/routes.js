@@ -34,7 +34,7 @@ exports.appRouter.use(["/ads", "/testing"], (req, _, next) => __awaiter(void 0, 
         .first();
     const marketplace = Algo_1.Algo.getMarketPlace(id);
     if (!marketplace) {
-        throw new ErrorHandler_1.NOT_FOUND_ERROR({ description: `Marketplace ${id} not found` });
+        throw new ErrorHandler_1.AppError({ description: `Marketplace ${id} not found`, httpCode: ErrorHandler_1.HTTPCodes.NOT_FOUND });
     }
     req.marketplace = marketplace;
     next();

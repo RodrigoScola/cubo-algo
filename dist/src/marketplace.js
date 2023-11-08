@@ -107,7 +107,7 @@ class Marketplace {
     }
     setup() {
         return __awaiter(this, void 0, void 0, function* () {
-            const products = yield (0, server_1.connection)("ads").select("*").where("marketplaceId", this.id).andWhere("isActive", 1);
+            const products = yield (0, server_1.connection)("ads").select("*").where("marketplaceId", this.id).andWhere("status", 1);
             products.forEach((product) => {
                 this.addAd(product);
             });
@@ -142,14 +142,22 @@ class Marketplace {
         }, []);
     }
     getAllAds() {
+        console.log(this.ads);
         return this.ads;
     }
     getAd(id) {
         return this.productAds.ads.find((ad) => ad.info.id === id);
     }
     reset() {
-        this.productAds.ads = [];
-        return (0, server_1.connection)("ads").update({ score: 0 }).where("marketplaceId", this.id).andWhere("isActive", 1);
+        this.ads = [];
+        return Promise.all([
+            (0, server_1.connection)("ads").update({ score: 0 }).where("marketplaceId", this.id).andWhere("status", 1),
+            (0, server_1.connection)("interaction").update({
+                clicks: 0,
+                ctr: 0,
+                views: 0,
+            }),
+        ]);
     }
     refresh() {
         return __awaiter(this, void 0, void 0, function* () {
