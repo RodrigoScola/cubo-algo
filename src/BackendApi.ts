@@ -17,19 +17,19 @@ export class BackendApi {
   async update<T>(url: string, item: T): Promise<T | undefined> {
     const newUrl = `${SERVER_URL}${url}`;
 
-    console.log(`🚀 ~ file: BackendApi.ts:9 ~ BackendApi ~ update ~ newUrl:`, newUrl);
-
-    const data = await fetch(newUrl, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "PUT",
-      body: JSON.stringify(item),
-    });
-    if (data.ok) {
-      return await data.json();
-    }
-    return;
+    try {
+      const data = await fetch(newUrl, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "PUT",
+        body: JSON.stringify(item),
+      });
+      if (data.ok) {
+        return await data.json();
+      }
+      return;
+    } catch (err) {}
   }
   get() {}
 }

@@ -17,12 +17,14 @@ testingRouter.get("/ads", (req, res) => {
 testingRouter.post("/ads/new", async (req, res) => {
   const newAd: NewAdInfo = {
     adType: "product",
+    status: 1,
     productId: Number(req.body.productId),
     marketplaceId: Number(req.body.marketplaceId),
     price: Number(req.body.price),
   };
 
   const jsona = await new BackendApi().post<AdInfo>("/ads", newAd);
+  console.log(jsona);
   res.send(jsona);
 });
 

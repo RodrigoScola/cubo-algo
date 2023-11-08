@@ -41,7 +41,7 @@ exports.NewProductInfoObject = {
     showWithoutStock: true,
     adWordsRemarketingCode: "",
     lomadeeCampaignCode: "",
-    isActive: true,
+    status: 0,
     score: 0,
 };
 exports.ProductInfoObject = Object.assign(Object.assign({}, exports.NewProductInfoObject), { id: 0 });

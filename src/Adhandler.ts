@@ -1,6 +1,6 @@
-import {AdInstance} from "./marketplace";
-import {connection} from "./server";
-import {AdContext, AdInfo, NewAdInfo} from "./types/types";
+import { AdInstance } from "./marketplace";
+import { connection } from "./server";
+import { AdContext, AdInfo, NewAdInfo } from "./types/types";
 
 export class AdHandler {
   getContext(adInfo: AdInfo) {
@@ -35,6 +35,7 @@ export class AdHandler {
 
     const [item, images] = await Promise.all([itemPromise, imagesPromise]);
 
+    console.log(item, images);
     if (!item) return;
 
     item.images = images;

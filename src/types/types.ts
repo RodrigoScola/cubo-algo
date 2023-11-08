@@ -8,7 +8,7 @@ export const NewAdInfoObject = {
 export const AdInfoObject = {
   ...NewAdInfoObject,
   score: 9,
-  isActive: true,
+  status: 0,
   skuId: 0,
   id: 0,
 };
@@ -96,7 +96,7 @@ export const NewProductInfoObject = {
   showWithoutStock: true,
   adWordsRemarketingCode: "",
   lomadeeCampaignCode: "",
-  isActive: true,
+  status: 0,
   score: 0,
 };
 export const ProductInfoObject = {
@@ -110,7 +110,7 @@ export type UpdatingProductInfo = Partial<typeof NewProductInfoObject>;
 export const NewSkuInfoObject = {
   isPersisted: false,
   productId: 0,
-  isActive: true,
+  status: 0,
   name: "",
   height: 0,
   realHeight: 0,
@@ -160,7 +160,7 @@ export const NewSkuInventoryObject = {
   timeToRefill: null,
   dateOfSupplyUtc: null,
   leadTime: "00:00:00",
-  isActive: true,
+  status: 0,
   skuId: 0,
 };
 export const SkuInventoryInfoObject = {
@@ -176,7 +176,7 @@ export const UpdatingSkuInventoryObject = {
   timeToRefill: null,
   dateOfSupplyUtc: null,
   leadTime: "00:00:00",
-  isActive: true,
+  status: 0,
 };
 export type InventoryInfo = typeof SkuInventoryInfoObject;
 export type NewInventoryInfo = typeof NewSkuInventoryObject;
