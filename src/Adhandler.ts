@@ -38,6 +38,7 @@ export class AdHandler {
 
     const [item, images] = await Promise.all([itemPromise, imagesPromise]);
 
+    console.log(item, images);
     if (!item) return;
 
     item.images = images;

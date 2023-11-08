@@ -123,7 +123,7 @@ export class Marketplace {
     this.productAds = new AdManager(this.ads);
   }
   async setup() {
-    const products = await connection("ads").select("*").where("marketplaceId", this.id).andWhere("isActive", 1);
+    const products = await connection("ads").select("*").where("marketplaceId", this.id).andWhere("status", 1);
 
     products.forEach((product) => {
       this.addAd(product);
@@ -158,15 +158,23 @@ export class Marketplace {
     }, []);
   }
   getAllAds() {
+    console.log(this.ads);
     return this.ads;
   }
   getAd(id: number): AdInstance | undefined {
     return this.productAds.ads.find((ad) => ad.info.id === id);
   }
   reset() {
-    this.productAds.ads = [];
+    this.ads = [];
 
-    return connection("ads").update({ score: 0 }).where("marketplaceId", this.id).andWhere("isActive", 1);
+    return Promise.all([
+      connection("ads").update({ score: 0 }).where("marketplaceId", this.id).andWhere("status", 1),
+      connection("interaction").update({
+        clicks: 0,
+        ctr: 0,
+        views: 0,
+      }),
+    ]);
   }
   async refresh() {
     await Promise.all([this.calculateScores(), this.saveScores()]);

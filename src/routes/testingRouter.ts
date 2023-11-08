@@ -3,7 +3,7 @@ import { Algo, SETTINGS_FLAGS, isSettingType } from "../Algo";
 import { BackendApi } from "../BackendApi";
 import { AppError, HTTPCodes } from "../ErrorHandler";
 import { connection } from "../server";
-import { AdInfo, NewAdInfo } from "../types/types";
+import { AdInfo, NewAdInfo, PostStatus } from "../types/types";
 
 export const testingRouter = Router();
 
@@ -14,22 +14,15 @@ testingRouter.get("/ads", (req, res) => {
 testingRouter.post("/ads/new", async (req, res) => {
   const newAdInfo: NewAdInfo = {
     adType: "product",
+    status: PostStatus.ACTIVE,
     productId: Number(req.body.productId),
     marketplaceId: Number(req.body.marketplaceId),
     price: Number(req.body.price),
   };
 
-  const newAd = await new BackendApi().post<AdInfo>("/ads", newAdInfo);
-
-  if (newAd) {
-    const marketplace = Algo.getMarketPlace(newAd.marketplaceId);
-
-    console.log(`🚀 ~ file: testingRouter.ts:32 ~ testingRouter.post ~ marketplace:`, marketplace);
-
-    marketplace?.addAd(newAd);
-  }
-
-  res.send(newAd);
+  const jsona = await new BackendApi().post<AdInfo>("/ads", newAdInfo);
+  console.log(jsona);
+  res.send(jsona);
 });
 
 testingRouter.get("/calculateScores", async (req, res) => {
@@ -86,6 +79,34 @@ testingRouter.get("/ads/settings", (_, res) => {
 });
 
 testingRouter.put("/ads/settings", (req, res) => {
+  if (!req.marketplace) {
+    throw new AppError({
+      description: "invalid Marketplace Id",
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
+
+  const settingType = req.query["setting"] as string;
+
+  const isSetting = isSettingType(settingType);
+  if (typeof settingType !== "string" && !isSetting) {
+    throw new AppError({
+      description: "invalid Setting description",
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
+  if (isSetting && typeof SETTINGS_FLAGS[settingType] === "boolean") {
+    SETTINGS_FLAGS[settingType as keyof typeof SETTINGS_FLAGS] = !SETTINGS_FLAGS[
+      settingType as keyof typeof SETTINGS_FLAGS
+    ] as never;
+  }
+
+  res.render("partials/algoSettings", {
+    algo: Algo,
+  });
+});
+
+testingRouter.put("/ads/", (req, res) => {
   if (!req.marketplace) {
     throw new AppError({
       description: "invalid Marketplace Id",

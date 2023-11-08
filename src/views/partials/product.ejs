@@ -56,20 +56,97 @@
             </label>
           </div>
 
+<<<<<<< HEAD
           <div hx-trigger=" click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-md font-light">
             <label>
               Set Clicks
               <input name="clicks" value="<%= product.context.clicks %>" class="text-black w-12 p-1 rounded" type="number" min="<%= product.context.clicks %>" />
             </label>
+=======
+
+    </div>
+    <div class="flex">
+      <% if (product.context.images) { %>
+
+      <% for (let j =0 ; j < product.context.images.length; j++) { %>
+      <% const image = product.context.images[j] %>
+      <img src="<%= image.url %>" alt="<%= image.alt %>" class="w-14" />
+      <% } %>
+
+      <% } %>
+    </div>
+    <div class="flex gap-3 justify-center">
+      <p class=" font-light text-sm py-2">Id: <%= product.info.id %></p>
+      <p class=" font-light text-sm py-2">views: <%= product.context.views %></p>
+      <p class=" font-light text-sm py-2">clicks: <%= product.context.clicks %></p>
+      <p class=" font-light text-sm py-2">ctr: <%= product.context.ctr %></p>
+    </div>
+
+    <div>
+      <h3 class="pb-2">Interactions</h3>
+      <div class="gap-2 flex flex-col">
+        <div class="flex items-center capitalize gap-2">
+
+          <div class="gap-3 flex flex-col ">
+            <form id="setViews">
+              <div class="text-xs font-light">
+                <label>
+                  Set Views
+                  <input class="text-black w-11" type="number" min="0" />
+                </label>
+              </div>
+            </form>
+>>>>>>> staging
           </div>
+
+          <button hx-include='#setViews' hx-swap="none" hx-put="/ads/<%= product.info.id %>/interactions/?type=views&count=1" class='font-thin outline-1 rounded px-1 outline outline-yellow-300'>
+            Set
+          </button>
         </div>
+<<<<<<< HEAD
       </form>
       <div class="w-fit pl-12 pt-4 ">
         <button hx-include="#myform2" hx-post="/ads/<%=product.info.id %>/interactions" hx-trigger="click" hx-swap="none" class="bg-green-500 rounded px-1 my-2  m-auto">Submit</button>
+=======
+        <div class="flex items-center capitalize gap-2">
+
+          <div class=" flex flex-row ">
+            <div hx-trigger=" click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light ">
+              <label>
+                Set Clicks
+                <input class="text-black w-11" type="number" min="0" />
+              </label>
+            </div>
+            <div class="flex justify-around cursor-pointer">
+            </div>
+          </div>
+          <button class="font-thin outline-1 rounded px-1 outline outline-yellow-300">
+            Set
+          </button>
+        </div>
+
       </div>
+      <div class="flex flex-row justify-around pt-1">
+
+        <div hx-trigger="click" hx-swap="outerHTML" hx-target="#product_<%= product.info.id %>" hx-put="/ads/<%= product.info.id %>/interactions/?type=views&count=1" class="text-xs font-light">
+          add view
+        </div>
+
+        <div hx-trigger="click" hx-swap="outerHTML" hx-target="#product_<%= product.info.id %>" hx-put="/ads/<%= product.info.id %>/interactions/?type=clicks&count=1" class="text-xs font-light">
+          add click
+        </div>
+>>>>>>> staging
+      </div>
+
     </div>
+<<<<<<< HEAD
   </div>
 
 </div>
 
 </div>
+=======
+
+
+  </div>
+>>>>>>> staging

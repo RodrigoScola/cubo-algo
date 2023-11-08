@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 import { Response } from "express";
 
 export enum HTTPCodes {
@@ -10,7 +11,6 @@ export enum HTTPCodes {
   REFUSED = 418,
   NOT_FOUND = 404,
   INTERNAL_SERVER_ERROR = 500,
-  NOT_IMPLEMENTED = 501,
 }
 
 export abstract class ErrorHandler {
@@ -21,12 +21,14 @@ export abstract class ErrorHandler {
 
     return false;
   }
+
   private static handleTrustedError(error: AppError, response: Response): void {
     response.status(error.httpCode).json({
       name: error.name,
       message: error.message,
     });
   }
+
   private static handleCriticalError(e: Error | AppError, response?: Response): void {
     if (response) {
       response.status(HTTPCodes.INTERNAL_SERVER_ERROR).json({
@@ -37,6 +39,7 @@ export abstract class ErrorHandler {
     console.log(`Application encountered critical error. Shutting off`);
     console.log(e);
   }
+
   static handle(error: Error, res?: Response): void {
     if (ErrorHandler.isTrustedError(error) && res) {
       ErrorHandler.handleTrustedError(error as AppError, res);
@@ -74,28 +77,53 @@ export class AppError extends Error {
   }
 }
 
-type NotFoundErrorArgs = {
-  name?: string;
-  description: string;
-  isOperational?: boolean;
-};
-export class NOT_FOUND_ERROR extends Error {
-  public override readonly name: string;
+export class BadRequestError {
   public readonly httpCode: HTTPCodes;
   public readonly isOperational: boolean = true;
 
-  constructor(args: NotFoundErrorArgs) {
-    super(args.description);
+  constructor(message: string) {
+    throw new AppError({
+      description: message,
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
+  }
+}
 
-    Object.setPrototypeOf(this, new.target.prototype);
+export class NotFoundError {
+  public readonly httpCode: HTTPCodes;
+  public readonly isOperational: boolean = true;
 
-    this.name = args.name || "Error";
-    this.httpCode = HTTPCodes.NOT_FOUND;
+  constructor(message: string) {
+    throw new AppError({
+      description: message,
+      httpCode: HTTPCodes.NOT_FOUND,
+    });
+  }
+}
 
-    if (args.isOperational !== undefined) {
-      this.isOperational = args.isOperational;
-    }
+export class InternalError {
+  public readonly httpCode: HTTPCodes;
+  public readonly isOperational: boolean = true;
 
-    Error.captureStackTrace(this);
+  constructor(message: string = "Something Wrong Happened") {
+    this.httpCode = HTTPCodes.INTERNAL_SERVER_ERROR;
+    throw new AppError({
+      description: message,
+      httpCode: HTTPCodes.INTERNAL_SERVER_ERROR,
+    });
+  }
+}
+
+export class InvalidIdError {
+  public readonly httpCode: HTTPCodes;
+  public readonly isOperational: boolean = true;
+
+  constructor(message: string = "Invalid Id") {
+    this.httpCode = HTTPCodes.INTERNAL_SERVER_ERROR;
+
+    throw new AppError({
+      description: message,
+      httpCode: HTTPCodes.BAD_REQUEST,
+    });
   }
 }

@@ -1,14 +1,22 @@
+export const PostStatus = {
+  ACTIVE: 1,
+  INACTIVE: 0,
+} as const;
+
+export type PostStatus = (typeof PostStatus)[keyof typeof PostStatus];
+
 export const NewAdInfoObject = {
   marketplaceId: 3,
   price: 300,
   productId: 3,
   adType: "",
+  status: 0 as PostStatus,
 };
 
 export const AdInfoObject = {
   ...NewAdInfoObject,
   score: 9,
-  isActive: true,
+  status: 0,
   skuId: 0,
   id: 0,
 };
@@ -39,6 +47,7 @@ export type AdInfo = typeof AdInfoObject & {
 };
 export type NewAdInfo = typeof NewAdInfoObject & {
   adType: "product" | "banner";
+  status: PostStatus;
 };
 
 export const UpdatingAdInfoObject: Partial<Omit<AdInfo, "id">> = Object.entries(NewAdInfoObject).reduce(
@@ -96,7 +105,7 @@ export const NewProductInfoObject = {
   showWithoutStock: true,
   adWordsRemarketingCode: "",
   lomadeeCampaignCode: "",
-  isActive: true,
+  status: 0,
   score: 0,
 };
 export const ProductInfoObject = {
@@ -110,7 +119,7 @@ export type UpdatingProductInfo = Partial<typeof NewProductInfoObject>;
 export const NewSkuInfoObject = {
   isPersisted: false,
   productId: 0,
-  isActive: true,
+  status: 0,
   name: "",
   height: 0,
   realHeight: 0,
@@ -160,7 +169,7 @@ export const NewSkuInventoryObject = {
   timeToRefill: null,
   dateOfSupplyUtc: null,
   leadTime: "00:00:00",
-  isActive: true,
+  status: 0,
   skuId: 0,
 };
 export const SkuInventoryInfoObject = {
@@ -176,7 +185,7 @@ export const UpdatingSkuInventoryObject = {
   timeToRefill: null,
   dateOfSupplyUtc: null,
   leadTime: "00:00:00",
-  isActive: true,
+  status: 0,
 };
 export type InventoryInfo = typeof SkuInventoryInfoObject;
 export type NewInventoryInfo = typeof NewSkuInventoryObject;
