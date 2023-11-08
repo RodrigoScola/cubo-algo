@@ -13,9 +13,13 @@
 
     </div>
     <div class="flex">
+      <% if (product.context.images) { %>
+
       <% for (let j =0 ; j < product.context.images.length; j++) { %>
       <% const image = product.context.images[j] %>
       <img src="<%= image.url %>" alt="<%= image.alt %>" class="w-14" />
+      <% } %>
+
       <% } %>
     </div>
     <div class="flex gap-3 justify-center">
@@ -27,52 +31,54 @@
 
     <div>
       <h3 class="pb-2">Interactions</h3>
-      <div class="flex flex-row ">
+      <div class="gap-2 flex flex-col">
+        <div class="flex items-center capitalize gap-2">
 
-        <div class="gap-3 flex flex-col "">
-    <div hx-trigger=" click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light">
-          <label>
-            Set Views
-            <input class="text-black" type="number" min="0" />
-          </label>
-        </div>
-        <div hx-trigger="click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light">
-          <label>
-            Add Views
-            <input class="text-black" type="number" min="0" />
-          </label>
-        </div>
-        <div class="flex justify-around cursor-pointer">
-          <div hx-trigger="click" hx-swap="outerHTML" hx-target="#product_<%= product.info.id %>" hx-put="/ads/<%= product.info.id %>/interactions/?type=views&count=1" class="text-xs font-light">
-            add view
+          <div class="gap-3 flex flex-col ">
+            <form id="setViews">
+              <div class="text-xs font-light">
+                <label>
+                  Set Views
+                  <input class="text-black w-11" type="number" min="0" />
+                </label>
+              </div>
+            </form>
           </div>
+
+          <button hx-include='#setViews' hx-swap="none" hx-put="/ads/<%= product.info.id %>/interactions/?type=views&count=1" class='font-thin outline-1 rounded px-1 outline outline-yellow-300'>
+            Set
+          </button>
         </div>
-      </div>
+        <div class="flex items-center capitalize gap-2">
 
-      <div class="gap-3 flex flex-col "">
-    <div hx-trigger=" click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light">
-        <label>
-          Set Clicks
-          <input class="text-black" type="number" min="0" />
-        </label>
-      </div>
-      <div hx-trigger="click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=clicks&count=1" class="text-xs font-light">
-        <label>
-          Add Clicks
-          <input class="text-black" type="number" min="0" />
-        </label>
+          <div class=" flex flex-row ">
+            <div hx-trigger=" click" hx-swap="none" hx-post="/testing/ads/<%= product.info.id %>/logging/?type=view" class="text-xs font-light ">
+              <label>
+                Set Clicks
+                <input class="text-black w-11" type="number" min="0" />
+              </label>
+            </div>
+            <div class="flex justify-around cursor-pointer">
+            </div>
+          </div>
+          <button class="font-thin outline-1 rounded px-1 outline outline-yellow-300">
+            Set
+          </button>
+        </div>
 
       </div>
-      <div class="flex justify-around cursor-pointer">
+      <div class="flex flex-row justify-around pt-1">
+
+        <div hx-trigger="click" hx-swap="outerHTML" hx-target="#product_<%= product.info.id %>" hx-put="/ads/<%= product.info.id %>/interactions/?type=views&count=1" class="text-xs font-light">
+          add view
+        </div>
+
         <div hx-trigger="click" hx-swap="outerHTML" hx-target="#product_<%= product.info.id %>" hx-put="/ads/<%= product.info.id %>/interactions/?type=clicks&count=1" class="text-xs font-light">
           add click
         </div>
       </div>
+
     </div>
-
-  </div>
-
-  </div>
 
 
   </div>

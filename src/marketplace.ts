@@ -154,9 +154,18 @@ export class Marketplace {
     return this.ads.find((ad) => ad.info.id === id);
   }
   reset() {
+    
+    const ids [][]
     this.ads = [];
 
-    return connection("ads").update({ score: 0 }).where("marketplaceId", this.id).andWhere("status", 1);
+    return Promise.all([
+      connection("ads").update({ score: 0 }).where("marketplaceId", this.id).andWhere("status", 1),
+      connection("interaction").update({
+        clicks: 0,
+        ctr: 0,
+        views: 0,
+      }),
+    ]);
   }
   async refresh() {
     await Promise.all([this.calculateScores(), this.saveScores()]);

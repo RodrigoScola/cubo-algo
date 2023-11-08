@@ -1,8 +1,16 @@
+export const PostStatus = {
+  ACTIVE: 1,
+  INACTIVE: 0,
+} as const;
+
+export type PostStatus = (typeof PostStatus)[keyof typeof PostStatus];
+
 export const NewAdInfoObject = {
   marketplaceId: 3,
   price: 300,
   productId: 3,
   adType: "",
+  status: 0 as PostStatus,
 };
 
 export const AdInfoObject = {
@@ -39,6 +47,7 @@ export type AdInfo = typeof AdInfoObject & {
 };
 export type NewAdInfo = typeof NewAdInfoObject & {
   adType: "product" | "banner";
+  status: PostStatus;
 };
 
 export const UpdatingAdInfoObject: Partial<Omit<AdInfo, "id">> = Object.entries(NewAdInfoObject).reduce(
