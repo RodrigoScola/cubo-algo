@@ -7,6 +7,7 @@ export type PostStatus = (typeof PostStatus)[keyof typeof PostStatus];
 
 export const NewAdInfoObject = {
   marketplaceId: 3,
+  skuId: 0,
   price: 300,
   productId: 3,
   adType: "",
@@ -68,8 +69,14 @@ export type UpdatingAdInfo = typeof UpdatingAdInfoObject;
 
 export type AdContext = ProductInfo &
   SkuInfo &
+
   Interaction &
   AdInfo & {
+    inventory: {
+      total: number,
+      hasInventory: boolean,
+      inventory: InventoryInfo[];
+    },
     images?: {
       isMain: boolean;
       url: string;

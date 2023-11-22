@@ -8,27 +8,33 @@ import { AdInfo, NewAdInfo, PostStatus } from "../types/types";
 export const testingRouter = Router();
 
 testingRouter.get("/ads", (req, res) => {
+
   const data = req.marketplace?.getAllAds();
-  console.log({
-    a: req.marketplace?.productAds.map((c) => c.context?.views),
-  });
-  res.render("home", { data: { products: data } });
+  res.json(data);
+});
+testingRouter.get("/ads/:adId", (req, res) => {
+  const numberAdId = Number(req.params.adId);
+
+  const data = req.marketplace?.getAllAds().find((x) => x.info.id === numberAdId);
+  res.json(data);
 });
 testingRouter.post("/ads/new", async (req, res) => {
   const newAd: NewAdInfo = {
     adType: "product",
+    skuId: 0,
     status: PostStatus.ACTIVE,
     productId: Number(req.body.productId),
+
     marketplaceId: Number(req.body.marketplaceId),
     price: Number(req.body.price),
   };
 
   const jsona = await new BackendApi().post<AdInfo>("/ads", newAd);
-  console.log(jsona);
   res.send(jsona);
 });
 
 testingRouter.get("/calculateScores", async (req, res) => {
+  console.log("asdf");
   const marketplace = req.marketplace;
   if (!marketplace) {
     throw new AppError({
@@ -38,7 +44,7 @@ testingRouter.get("/calculateScores", async (req, res) => {
   }
 
   marketplace.calculateScores();
-
+  await marketplace.setup();
   await marketplace.refresh();
 
   return res.render("home", {

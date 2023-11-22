@@ -42,14 +42,9 @@ adsInteractionsRouter.put("/", async (req, res) => {
       httpCode: HTTPCodes.BAD_REQUEST,
     });
   }
-  console.log(type, count);
 
   const updated = await new BackendApi().update<Partial<Interaction>>(`/ads/${ad.info.id}/interactions`, {
     [type]: numberCount,
-  });
-
-  console.log({
-    updated,
   });
 
   if (!ad.context || !updated) return;

@@ -4,6 +4,7 @@ import { Algo } from "./Algo";
 import { ErrorHandler } from "./ErrorHandler";
 
 import cors from "cors";
+import { __DEV__ } from "./constants";
 import { appRouter } from "./routes/routes";
 
 const config: Knex.Config = {
@@ -37,11 +38,15 @@ const EFunction: ErrorRequestHandler = (err: Error, __: Request, res: Response, 
 
 server.use(EFunction);
 
+const REFRESH_INTERVAL = __DEV__ ? 1000 * 20 : 1000 * 60 * 30;
 setInterval(() => {
+  console.log("refreshing");
   Algo.refresh();
-}, 15_000);
+}, REFRESH_INTERVAL);
 
 server.listen(process.env.PORT, async () => {
+  // await Promise.all([connection("ads").where("id", ">", 0).del()]);
+
   console.clear();
   await Algo.setup();
   Algo.start();

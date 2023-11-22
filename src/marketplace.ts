@@ -1,11 +1,16 @@
 import { AdHandler } from "./Adhandler";
+import { AdInstance } from "./adInstance";
 import { connection } from "./server";
-import { AdContext, AdInfo } from "./types/types";
+import { AdContext } from "./types/types";
 
 class MarketplaceScoring {
   calculateScore(instances: AdInstance[]) {
     instances.forEach((instance) => {
-      if (instance.context && "views" in instance.context) instance.scoring.add(instance.context.ctr);
+
+      instance.scoring.add(instance.context?.ctr);
+      instance.scoring.add(instance.context?.inventory.total);
+      instance.scoring.add(-instance.scoring.score);
+
       instance.calculateScore();
     });
   }
@@ -15,91 +20,9 @@ class MarketplaceScoring {
   }
 }
 
-class Scoring {
-  private numbers: number[];
-  private _score: number;
 
-  private readonly baseScore;
-  constructor(initialScore: number) {
-    this.numbers = [initialScore];
-    this._score = initialScore;
-    this.baseScore = initialScore;
-  }
-  get score() {
-    return this._score;
-  }
-  add(num: number) {
-    this.numbers.push(num);
-  }
-  set(num: number) {
-    this._score = num;
-  }
-  calculate() {
-    this._score = 0;
-
-    this.numbers.forEach((number) => {
-      this._score += number;
-    });
-    this.numbers = [];
-    return this.score;
-  }
-  reset() {
-    this.numbers = [];
-    this._score = this.baseScore;
-  }
-}
-
-export class AdInstance {
-  info: AdInfo;
-  context?: AdContext;
-  scoring: Scoring;
-  type: "product" | "banner";
-  inRotation: boolean;
-
-  constructor(info: AdInfo) {
-    this.type = "product";
-    this.info = info;
-    this.scoring = new Scoring(0);
-    this.inRotation = false;
-  }
-
-  get score() {
-    return this.scoring.score || 0;
-  }
-  addScore(num: number) {
-    this.scoring.add(num);
-  }
-
-  async getContext() {
-    if (this.context) {
-      return Promise.resolve(this.context);
-    }
-    if (this.info.skuId === 0) {
-      const skuId = await AdHandler.getBestSku(this.info);
-
-      if (!skuId) return;
-
-      await connection.update({ skuId }).where({ id: this.info.id }).from("ads");
-
-      this.info.skuId = skuId;
-    }
-
-    const context = await AdHandler.getContext(this.info);
-
-    this.scoring.set(context?.ctr ?? 0);
-    return (this.context = {
-      ...context,
-      score: this.score,
-    } as AdContext);
-  }
-  calculateScore(): number {
-    this.scoring.calculate();
-    return this.scoring.score;
-  }
-}
 
 export class Marketplace {
-  productAds: AdInstance[];
 
   private ads: AdInstance[];
   private scoring: MarketplaceScoring;
@@ -109,20 +32,23 @@ export class Marketplace {
     this.id = id;
     this.scoring = new MarketplaceScoring();
     this.ads = [];
-    this.productAds = [];
   }
   async setup() {
     const products = await connection("ads").select("*").where("marketplaceId", this.id).andWhere("status", 1);
 
     products.forEach((product) => {
-      this.addAd(product);
+      this.addAd(new AdInstance(product));
     });
     this.calculateScores();
-    return await Promise.all([AdHandler.getAdsContext(this.ads), this.saveScores()]);
+
+    await Promise.all([AdHandler.getAdsContext(this.ads), this.saveScores()]);
+
+    return;
   }
+
   start() {
     this.ads.forEach((ad, i) => {
-      if (i < this.totalAdsPerBatch) {
+      if (i < this.totalAdsPerBatch && ad.canGetRotation) {
         ad.inRotation = true;
       }
     });
@@ -130,6 +56,12 @@ export class Marketplace {
   calculateScores() {
     this.scoring.calculateScore(this.ads);
     this.ads = this.scoring.sortScores(this.ads);
+
+    this.ads.forEach((ad, i) => {
+      if (i < this.totalAdsPerBatch && ad.canGetRotation) {
+        ad.inRotation = true;
+      }
+    });
   }
   async saveScores() {
     return await Promise.all(
@@ -147,15 +79,12 @@ export class Marketplace {
     }, []);
   }
   getAllAds() {
-    console.log(this.ads);
     return this.ads;
   }
   getAd(id: number): AdInstance | undefined {
     return this.ads.find((ad) => ad.info.id === id);
   }
   reset() {
-    
-    const ids [][]
     this.ads = [];
 
     return Promise.all([
@@ -168,19 +97,32 @@ export class Marketplace {
     ]);
   }
   async refresh() {
-    await Promise.all([this.calculateScores(), this.saveScores()]);
-    for (let i = 0; i < this.ads.length; i++) {
-      const ad = this.ads[i];
-      if (!ad) continue;
+    const adsIds = this.ads.map((ad) => ad.info.id);
 
-      ad.inRotation = i < this.totalAdsPerBatch;
-    }
+    const newProducts = await connection("ads")
+      .select("*")
+      .where("marketplaceId", this.id)
+      .andWhere("status", 1)
+      .whereNotIn("id", adsIds);
+
+    newProducts.forEach((product) => {
+      return this.addAd(new AdInstance(product));
+    });
+    await Promise.all([
+      this.calculateScores(),
+      this.saveScores(),
+    ]);
+    AdHandler.getAdsContext(this.ads);
+
   }
 
-  addAd(ad: AdInfo) {
-    const instance = new AdInstance(ad);
-    this.productAds.push(instance);
-    this.ads.push(instance);
-    return instance;
+  addAd(ad: AdInstance) {
+    const id = this.ads.find((x) => x.info.id === ad.info.id)?.info.id;
+
+    if (!id) {
+      this.ads.push(ad);
+    }
+
+    return ad;
   }
 }

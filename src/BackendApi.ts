@@ -26,10 +26,30 @@ export class BackendApi {
         body: JSON.stringify(item),
       });
       if (data.ok) {
-        return await data.json();
+        return data.json();
       }
       return;
-    } catch (err) {}
+    } catch (err) {
+      return;
+    }
   }
-  get() {}
+  async get(url: string) {
+
+    const newUrl = `${SERVER_URL}${url}`;
+
+    try {
+      const data = await fetch(newUrl, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+      });
+      if (data.ok) {
+        return data.json();
+      }
+      return;
+    } catch (err) {
+      return;
+    }
+  }
 }
