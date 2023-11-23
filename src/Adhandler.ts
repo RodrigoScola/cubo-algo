@@ -1,7 +1,7 @@
 import { BackendApi } from "./BackendApi";
 import { AdInstance } from "./adInstance";
 import { connection } from "./server";
-import { AdContext, AdInfo, NewAdInfo } from "./types/types";
+import { AdContext, AdInfo, InventoryInfo, NewAdInfo, SkuInfo } from "./types/types";
 
 export class AdHandler {
   getContext(adInfo: AdInfo) {
@@ -43,7 +43,7 @@ export class AdHandler {
 
     item.images = images;
 
-    const totalInventory = inventory.reduce((acc: number, item) => acc += item.totalQuantity, 0);
+    const totalInventory = inventory.reduce((acc: number, item: InventoryInfo) => acc += item.availableQuantity, 0);
 
 
     item.inventory = {
@@ -59,6 +59,6 @@ export class AdHandler {
     select sum(si.totalQuantity) as totalQuantity, si.skuId, s.productId from sku_inventory as si left join sku as s on si.skuId = s.id where s.productId = ${ad.productId} group by skuId  order by totalQuantity desc
     `);
 
-    return skus.find((x) => x)?.skuId ?? null;
+    return skus.find((x: SkuInfo) => x)?.skuId ?? null;
   }
 }

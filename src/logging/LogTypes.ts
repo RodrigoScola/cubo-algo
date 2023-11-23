@@ -1,7 +1,9 @@
-import { AdInstance } from "../marketplace";
+import { AdInstance } from "../adInstance";
 
 export class ViewLogType {
-  log(arg: AdInstance) {}
+  log(arg: AdInstance) {
+    console.log(arg);
+  }
 }
 
 export const LogTypes = {

@@ -34,7 +34,7 @@ adsInteractionsRouter.put("/", async (req, res) => {
       httpCode: HTTPCodes.BAD_REQUEST,
     });
   }
-  const ad = req.marketplace.getAd(Number(req.params.adId));
+  const ad = req.marketplace.getAd(req.ad.id);
 
   if (!ad) {
     throw new AppError({

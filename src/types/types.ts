@@ -168,31 +168,45 @@ export type SkuInfo = typeof SkuInfoObject;
 export type NewSkuInfo = typeof NewSkuInfoObject;
 export type UpdatingSkuInfo = Partial<Omit<SkuInfo, "id">>;
 export const NewSkuInventoryObject = {
-  warehouseId: "123",
-  warehouseName: "estoque name test",
+  skuId: 25,
+  warehouseId: "1_1",
+  previousSkuId: 0,
   totalQuantity: 0,
   reservedQuantity: 0,
-  hasUnlimitedQuantity: false,
+  availableQuantity: 0,
+  isUnlimited: false,
   timeToRefill: null,
   dateOfSupplyUtc: null,
+  supplyLotId: null,
+  keepSellingAfterExpiration: false,
+  transfer: null,
   leadTime: "00:00:00",
-  status: 0,
-  skuId: 0,
+  previousWarehouseId: "",
+  marketplaceId: 0 as MARKETPLACES,
+  status: 0 as PostStatus,
+  id: "",
 };
 export const SkuInventoryInfoObject = {
-  id: 0,
   ...NewSkuInventoryObject,
 };
 export const UpdatingSkuInventoryObject = {
-  warehouseId: "123",
-  warehouseName: "estoque name test",
+  skuId: 25,
+  warehouseId: "1_1",
+  previousSkuId: 0,
   totalQuantity: 0,
   reservedQuantity: 0,
-  hasUnlimitedQuantity: false,
+  availableQuantity: 0,
+  isUnlimited: false,
   timeToRefill: null,
   dateOfSupplyUtc: null,
+  supplyLotId: null,
+  keepSellingAfterExpiration: false,
+  transfer: null,
   leadTime: "00:00:00",
-  status: 0,
+  previousWarehouseId: "",
+  marketplaceId: 0 as MARKETPLACES,
+  status: 0 as PostStatus,
+  id: "",
 };
 export type InventoryInfo = typeof SkuInventoryInfoObject;
 export type NewInventoryInfo = typeof NewSkuInventoryObject;
@@ -215,3 +229,7 @@ export const SkuFileObject = {
 export type SkuFile = typeof SkuFileObject;
 export type NewSkuFile = typeof NewSkuFileObject;
 export type UpdatingSkuFile = Partial<Omit<Omit<SkuFile, "id">, "archiveId">>;
+
+export enum MARKETPLACES {
+  WECODE = 1,
+}
