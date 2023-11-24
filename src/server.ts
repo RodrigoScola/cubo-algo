@@ -38,7 +38,7 @@ const EFunction: ErrorRequestHandler = (err: Error, __: Request, res: Response, 
 
 server.use(EFunction);
 
-const REFRESH_INTERVAL = __DEV__ ? 1000 * 20 : 1000 * 60 * 30;
+const REFRESH_INTERVAL = __DEV__ ? 1000 * 10 : 1000 * 60 * 30;
 setInterval(() => {
   console.log("refreshing");
   Algo.refresh();

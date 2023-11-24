@@ -11,7 +11,9 @@ export class AdHandler {
     return await Promise.all(
       info.map((ad) => {
         ad.context = undefined;
+
         return ad.getContext();
+
       })
     );
   }
@@ -43,14 +45,18 @@ export class AdHandler {
 
     item.images = images;
 
-    const totalInventory = inventory.reduce((acc: number, item: InventoryInfo) => acc += item.availableQuantity, 0);
+    if (inventory) {
 
 
-    item.inventory = {
-      total: totalInventory,
-      hasInventory: totalInventory > 0,
-      inventory
-    };
+      const totalInventory = inventory.reduce((acc: number, item: InventoryInfo) => acc += item.availableQuantity, 0);
+
+      item.inventory = {
+        total: totalInventory,
+        hasInventory: totalInventory > 0,
+        inventory
+      };
+
+    }
 
     return item;
   }

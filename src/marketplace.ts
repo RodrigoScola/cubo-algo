@@ -1,3 +1,5 @@
+
+
 import { AdHandler } from "./Adhandler";
 import { AdInstance } from "./adInstance";
 import { connection } from "./server";
@@ -7,16 +9,16 @@ class MarketplaceScoring {
   calculateScore(instances: AdInstance[]) {
     instances.forEach((instance) => {
 
-      instance.scoring.add(instance.context?.ctr);
-      instance.scoring.add(instance.context?.inventory.total);
-      instance.scoring.add(-instance.scoring.score);
-
+      instance.scoring.add(instance.context?.inventory.hasInventory ? 1 : 0);
+      if (instance.context?.inventory?.total === 0) {
+        instance.scoring.add(-instance.scoring.score);
+      }
       instance.calculateScore();
     });
   }
 
   sortScores(ads: AdInstance[]) {
-    return ads.sort((a, b) => b.score - a.score);
+    return ads.sort((a, b) => b.score * (b.inRotation ? 1 : 0) - a.score * (a.inRotation ? 1 : 0));
   }
 }
 
@@ -55,13 +57,18 @@ export class Marketplace {
   }
   calculateScores() {
     this.scoring.calculateScore(this.ads);
-    this.ads = this.scoring.sortScores(this.ads);
+    const currentAds = new Map();
+    this.ads.forEach((ad,) => {
 
-    this.ads.forEach((ad, i) => {
-      if (i < this.totalAdsPerBatch && ad.canGetRotation) {
-        ad.inRotation = true;
+
+      if (currentAds.size < this.totalAdsPerBatch && ad.canGetRotation) {
+        if (!currentAds.has(ad.info.skuId)) {
+          currentAds.set(ad.info.skuId, ad);
+          ad.inRotation = true;
+        }
       }
     });
+    this.ads = this.scoring.sortScores(this.ads);
   }
   async saveScores() {
     return await Promise.all(

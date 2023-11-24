@@ -10,6 +10,7 @@ export const testingRouter = Router();
 testingRouter.get("/ads", (req, res) => {
 
   const data = req.marketplace?.getAllAds();
+
   res.json(data);
 });
 testingRouter.get("/ads/:adId", (req, res) => {

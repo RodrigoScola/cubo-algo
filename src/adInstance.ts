@@ -26,7 +26,7 @@ class Scoring {
     this._score = 0;
 
     this.numbers.forEach((number) => {
-      this._score += number;
+      this._score += number * 100;
     });
     this.numbers = [];
     return this.score;
@@ -50,7 +50,8 @@ export class AdInstance {
     this.inRotation = false;
   }
   get canGetRotation() {
-    return this.context?.inventory.hasInventory;
+    if (!this.context || this.context.inventory.total <= 0) return false;
+    return true;
   }
 
   get score() {
@@ -72,10 +73,9 @@ export class AdInstance {
       this.info.skuId = skuId;
     }
 
-    console.log('getting context');
     const context = await AdHandler.getContext(this.info);
 
-    this.scoring.set(context?.ctr ?? 0);
+
 
     this.context = {
       ...context,
