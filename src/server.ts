@@ -50,5 +50,6 @@ server.listen(process.env.PORT, async () => {
   console.clear();
   await Algo.setup();
   Algo.start();
+  await Algo.refresh();
   console.log(`SERVER WORKING ON PORT ${process.env.PORT}`);
 });

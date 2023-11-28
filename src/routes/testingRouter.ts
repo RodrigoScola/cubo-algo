@@ -8,8 +8,8 @@ import { AdInfo, NewAdInfo, PostStatus } from "../types/types";
 export const testingRouter = Router();
 
 testingRouter.get("/ads", (req, res) => {
-
   const data = req.marketplace?.getAllAds();
+
 
   res.json(data);
 });
@@ -35,7 +35,6 @@ testingRouter.post("/ads/new", async (req, res) => {
 });
 
 testingRouter.get("/calculateScores", async (req, res) => {
-  console.log("asdf");
   const marketplace = req.marketplace;
   if (!marketplace) {
     throw new AppError({

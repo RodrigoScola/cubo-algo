@@ -9,7 +9,10 @@ export class BackendApi {
   }
   async post<T>(url: string, data: object): Promise<T | undefined> {
     const a = await fetch(`${SERVER_URL}${url}`, {
-      headers: this.headers,
+      headers: {
+        'Content-Type': 'application/json',
+        'marketplaceId': '1'
+      },
       method: "POST",
       body: JSON.stringify(data),
     });

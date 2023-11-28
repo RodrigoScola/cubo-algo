@@ -9,6 +9,7 @@ class MarketplaceScoring {
   calculateScore(instances: AdInstance[]) {
     instances.forEach((instance) => {
 
+
       instance.scoring.add(instance.context?.inventory.hasInventory ? 1 : 0);
       if (instance.context?.inventory?.total === 0) {
         instance.scoring.add(-instance.scoring.score);
@@ -41,10 +42,10 @@ export class Marketplace {
     products.forEach((product) => {
       this.addAd(new AdInstance(product));
     });
-    this.calculateScores();
 
     await Promise.all([AdHandler.getAdsContext(this.ads), this.saveScores()]);
 
+    this.calculateScores();
     return;
   }
 
@@ -77,13 +78,8 @@ export class Marketplace {
       })
     );
   }
-  getAds(): AdContext[] {
-    return this.ads.reduce((acc: AdContext[], item) => {
-      if (item.inRotation && item.context) {
-        acc.push(item.context);
-      }
-      return acc;
-    }, []);
+  getAds(): (AdContext | undefined)[] {
+    return this.ads.map(ad => ad.context);
   }
   getAllAds() {
     return this.ads;
@@ -106,6 +102,9 @@ export class Marketplace {
   async refresh() {
     const adsIds = this.ads.map((ad) => ad.info.id);
 
+
+    await AdHandler.getAdsContext(this.ads);
+    console.log(this.ads.map(i => i.context?.inventory));
     const newProducts = await connection("ads")
       .select("*")
       .where("marketplaceId", this.id)
@@ -115,12 +114,14 @@ export class Marketplace {
     newProducts.forEach((product) => {
       return this.addAd(new AdInstance(product));
     });
+
+
+
+    console.log(this.ads.find(i => i.info.id === 18)?.context);
     await Promise.all([
       this.calculateScores(),
       this.saveScores(),
     ]);
-    AdHandler.getAdsContext(this.ads);
-
   }
 
   addAd(ad: AdInstance) {
@@ -128,6 +129,9 @@ export class Marketplace {
 
     if (!id) {
       this.ads.push(ad);
+    } else {
+      const index = this.ads.findIndex((x) => x.info.id === id);
+      this.ads[index] = ad;
     }
 
     return ad;

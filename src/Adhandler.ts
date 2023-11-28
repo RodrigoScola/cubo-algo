@@ -8,10 +8,9 @@ export class AdHandler {
     return AdHandler.getContext(adInfo);
   }
   static async getAdsContext(info: AdInstance[]): Promise<(AdContext | undefined)[]> {
+
     return await Promise.all(
       info.map((ad) => {
-        ad.context = undefined;
-
         return ad.getContext();
 
       })
@@ -45,18 +44,27 @@ export class AdHandler {
 
     item.images = images;
 
-    if (inventory) {
 
-
-      const totalInventory = inventory.reduce((acc: number, item: InventoryInfo) => acc += item.availableQuantity, 0);
-
+    if (!inventory) {
       item.inventory = {
-        total: totalInventory,
-        hasInventory: totalInventory > 0,
-        inventory
+        total: 0,
+        hasInventory: 0 > 0,
+        inventory: []
       };
-
+      return item;
     }
+
+
+
+    const totalInventory = inventory?.reduce((acc: number, item: InventoryInfo) => acc += item.availableQuantity, 0);
+
+
+    item.inventory = {
+      total: totalInventory,
+      hasInventory: totalInventory > 0,
+      inventory
+
+    };
 
     return item;
   }

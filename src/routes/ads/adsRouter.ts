@@ -26,7 +26,6 @@ adsRouter.param('adId', (req, _, next, adId) => {
 
 adsRouter.get("/", (req, res) => {
   const data = req.marketplace?.getAds();
-
   res.send(data);
 });
 

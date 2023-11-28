@@ -50,7 +50,7 @@ export class AdInstance {
     this.inRotation = false;
   }
   get canGetRotation() {
-    if (!this.context || this.context.inventory.total <= 0) return false;
+    if (!this.context || this.context.inventory?.total <= 0) return false;
     return true;
   }
 
@@ -62,7 +62,6 @@ export class AdInstance {
   }
 
   async getContext() {
-    if (this.context) return this.context;
     if (this.info.skuId === 0) {
       const skuId = await AdHandler.getBestSku(this.info);
 
@@ -81,6 +80,9 @@ export class AdInstance {
       ...context,
       score: this.score,
     } as AdContext;
+
+
+
 
     return this.context;
   }

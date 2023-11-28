@@ -30,7 +30,6 @@ export class Algo {
       marketPlaceNames.map((marketplaceId: number) => {
         const market = new Marketplace(marketplaceId);
         Algo.marketplaces.set(marketplaceId, market);
-
         return market.setup();
       })
     );
