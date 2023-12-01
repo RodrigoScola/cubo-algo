@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { Algo } from "../Algo";
-import { NotFoundError } from "../ErrorHandler";
+import { BadRequestError, NotFoundError } from "../ErrorHandler";
 import { __DEV__ } from "../constants";
 import { connection } from "../server";
 import { adsRouter } from "./ads/adsRouter";
@@ -10,7 +10,16 @@ import { testingRouter } from "./testingRouter";
 export const appRouter = Router();
 
 appRouter.use(["/ads", "/testing"], async (req, _, next) => {
+  if (!('marketplace' in req.headers)) {
+    throw new BadRequestError('Marketplace header not set');
+  }
+
+
+
   let marketplaceName = req.headers["marketplace"];
+
+
+
 
   if (__DEV__) {
     marketplaceName = "wecode";

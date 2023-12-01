@@ -1,0 +1,13 @@
+{
+    "plugins": [
+        {
+            "type": "add",
+            "pluginName": "fleet.vim"
+        }
+    ],
+    "vimEmulationEnabled": true,
+    "toolchains": [
+        
+    ]
+
+}
