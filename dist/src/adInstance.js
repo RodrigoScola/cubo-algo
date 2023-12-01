@@ -51,7 +51,9 @@ class AdInstance {
     }
     get canGetRotation() {
         var _a;
-        return ((_a = this.context) === null || _a === void 0 ? void 0 : _a.inventory.total) > 0;
+        if (!this.context || ((_a = this.context.inventory) === null || _a === void 0 ? void 0 : _a.total) <= 0)
+            return false;
+        return true;
     }
     get score() {
         return this.scoring.score || 0;
@@ -61,8 +63,6 @@ class AdInstance {
     }
     getContext() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.context)
-                return this.context;
             if (this.info.skuId === 0) {
                 const skuId = yield Adhandler_1.AdHandler.getBestSku(this.info);
                 if (!skuId)
