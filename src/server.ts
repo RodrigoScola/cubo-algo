@@ -1,12 +1,18 @@
-import express, { ErrorRequestHandler, Request, Response } from "express";
-import { knex as Kcon, Knex } from "knex";
-import { Algo } from "./Algo";
-import { ErrorHandler } from "./ErrorHandler";
 
+import cluster from 'cluster';
 import cors from "cors";
-import { __DEV__ } from "./constants";
-import { appRouter } from "./routes/routes";
+import express, { Application, ErrorRequestHandler, Request, Response } from "express";
+import { knex as Kcon, Knex } from "knex";
+import os from 'os';
+import { ErrorHandler } from "./ErrorHandler";
+import { run } from "./algo";
+import { PORT, __DEV__ } from "./constants";
+import "./process";
+import { appRouter } from "./routes/router";
 
+
+const totalCPUs = os.availableParallelism();
+Error.stackTraceLimit = Infinity;
 const config: Knex.Config = {
   client: "mysql2",
   connection: process.env.DATABASE_URL || "",
@@ -17,39 +23,77 @@ const config: Knex.Config = {
 };
 export const connection = Kcon(config);
 
-export const server = express();
-server.use(
-  cors({
-    origin: "*",
-  })
-);
+async function createTables() {
+  await connection.raw(`
+    create table if not exists ads_rotation(
+      id int primary key,
+      inRotation boolean,
+      canGetInRotation boolean,
+      score int
+    )
+  `);
+}
 
-server.use(express.json());
-server.use(express.urlencoded({ extended: true }));
-server.set("view engine", "ejs");
-server.set("views", __dirname + "/views");
+if (cluster.isPrimary && !__DEV__) {
+  console.log(`Number of CPUs is ${totalCPUs}`);
+  console.log(`Primary ${process.pid} is running`);
 
-server.use("/", appRouter);
+  // Fork workers.
+  for (let i = 0; i < totalCPUs; i++) {
+    cluster.fork();
+  }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const EFunction: ErrorRequestHandler = (err: Error, __: Request, res: Response, _next) => {
-  ErrorHandler.handle(err, res);
-};
+  cluster.on("exit", (worker,) => {
+    console.log(`worker ${worker.process.pid} died`);
+    console.log("Let's fork another worker!");
+    cluster.fork();
+  });
 
-server.use(EFunction);
+} else {
 
-const REFRESH_INTERVAL = __DEV__ ? 1000 * 10 : 1000 * 60 * 30;
-setInterval(() => {
-  console.log("refreshing");
-  Algo.refresh();
-}, REFRESH_INTERVAL);
 
-server.listen(process.env.PORT, async () => {
-  // await Promise.all([connection("ads").where("id", ">", 0).del()]);
+  const app: Application = express();
 
+<<<<<<< HEAD
   console.clear();
   await Algo.setup();
   Algo.start();
   await Algo.refresh();
   console.log(`SERVER WORKING ON PORT ${process.env.PORT}`);
 });
+=======
+  app.use(cors({ origin: "*" }));
+  app.use(express.urlencoded({ extended: true }));
+  app.use(express.json());
+  app.use(express.static(__dirname + "/views/public"));
+
+  app.use("/", appRouter);
+
+  app.set("view engine", "ejs");
+  app.set("views", __dirname + "/views");
+
+  app.get("/", (_, res) => {
+    res.send("hello world");
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const EFunction: ErrorRequestHandler = (err: Error, __: Request, res: Response, _next) => {
+    ErrorHandler.handle(err, res);
+  };
+
+  app.use(EFunction);
+
+
+
+  app.listen(PORT, async () => {
+    console.clear();
+    await createTables();
+    run();
+
+
+
+    console.log(`Server is running in http://localhost:${PORT}`);
+  });
+
+}
+>>>>>>> restructure

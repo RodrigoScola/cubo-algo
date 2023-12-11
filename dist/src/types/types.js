@@ -1,11 +1,16 @@
-export enum CMS_PLATFORMS {
-    VTEX = 1,
-}
-export enum MARKETPLACES {
-    WECODE = 1,
-    TESTING = 2,
-}
-export const ItemStatus = {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AdsRotationObject = exports.AdContextObject = exports.AdInteractionInfoObject = exports.SkuFileObject = exports.AdInfoObject = exports.SkuInventoryInfoObject = exports.MarketplaceObj = exports.SkuInfoObject = exports.ProductInfoObject = exports.ItemStatus = exports.MARKETPLACES = exports.CMS_PLATFORMS = void 0;
+var CMS_PLATFORMS;
+(function (CMS_PLATFORMS) {
+    CMS_PLATFORMS[CMS_PLATFORMS["VTEX"] = 1] = "VTEX";
+})(CMS_PLATFORMS || (exports.CMS_PLATFORMS = CMS_PLATFORMS = {}));
+var MARKETPLACES;
+(function (MARKETPLACES) {
+    MARKETPLACES[MARKETPLACES["WECODE"] = 1] = "WECODE";
+    MARKETPLACES[MARKETPLACES["TESTING"] = 2] = "TESTING";
+})(MARKETPLACES || (exports.MARKETPLACES = MARKETPLACES = {}));
+exports.ItemStatus = {
     /**
      * Item vai ser usado para todas as coisas
      *  - algoritmos, sites, dashboards... tudo
@@ -14,44 +19,36 @@ export const ItemStatus = {
      *
      */
     ACTIVE: 1,
-
     /**
      * Item nao vai ser usado em nada
      * Algumas pessoas podem ver, tendo a permissao
      *  - devs da wecode
      */
     INACTIVE: 0,
-
     /**
      * Item pode ser visto no sites/dashboards mas nao sera utilizado no algoritmo,
      */
     PAUSED: 2,
-
     /**
      * Item esta sendo postado, utilizado para itens que dependem de outros para estarem ativos
      * - ex: marketplace, campanhas
      * normalmente vai virar ativo assim que as criacas completarem de ficarem ativos
      */
     STARTING: 3,
-
     /**
      * Item esta sendo deletado, utilizado para itens que dependem de outros para estarem ativos
      * - ex: marketplace, campanhas
      * normalmente vai virar inativo assim que as criacas completarem de ficarem inativos
      */
     ENDING: 4,
-
     /**
      * Item foi blockeado por algum motivo, para nao remover da database, porque temos que ter a informacao,
      * para tomar as medidas necessarias. so devemos mudar a flag dele
      * vai ser tratado como item inativo
      */
     BLOCKED: 5,
-} as const;
-export type ItemStatus = (typeof ItemStatus)[keyof typeof ItemStatus];
-
-
-export const ProductInfoObject = {
+};
+exports.ProductInfoObject = {
     name: "Mesa 2 Gav Az-2007 Branco/nogal teste de update",
     departmentId: 114,
     categoryId: 116,
@@ -72,18 +69,17 @@ export const ProductInfoObject = {
     lomadeeCampaignCode: null,
     score: null,
     status: 1,
-    previousId: 0 as ItemStatus,
+    previousId: 0,
     releaseDate: "2022-10-26T00:00:00.000Z",
     id: 0,
 };
-
-export const SkuInfoObject = {
+exports.SkuInfoObject = {
     isPersisted: false,
     productId: 0,
     marketplaceId: MARKETPLACES.TESTING,
     estimatedDateArrival: Date.now(),
     previousId: 0,
-    status: 0 as ItemStatus,
+    status: 0,
     name: "",
     height: 0,
     realHeight: 0,
@@ -115,19 +111,13 @@ export const SkuInfoObject = {
     isKitOptimized: 0,
     id: 0,
 };
-
-export type SkuInfo = typeof SkuInfoObject;
-export type ProductInfo = typeof ProductInfoObject;
-
-export const MarketplaceObj = {
+exports.MarketplaceObj = {
     name: "wecode",
-    platformId: 1 as CMS_PLATFORMS,
-    id: 9 as MARKETPLACES,
-    status: 0 as ItemStatus,
+    platformId: 1,
+    id: 9,
+    status: 0,
 };
-export type MarketplaceInfo = typeof MarketplaceObj;
-
-export const SkuInventoryInfoObject = {
+exports.SkuInventoryInfoObject = {
     id: "41.123",
     skuId: 41,
     warehouseId: "ewaoma1",
@@ -139,7 +129,7 @@ export const SkuInventoryInfoObject = {
     timeToRefill: null,
     leadTime: "00:00:00",
     dateOfSupplyUtc: null,
-    status: 1 as ItemStatus,
+    status: 1,
     isUnlimited: true,
     previousSkuId: 2,
     supplyLotId: "3",
@@ -148,11 +138,7 @@ export const SkuInventoryInfoObject = {
     transfer: true,
     previousWarehouseId: "2.1_1",
 };
-
-export type SkuInventoryInfo = typeof SkuInventoryInfoObject;
-
-
-export const AdInfoObject = {
+exports.AdInfoObject = {
     marketplaceId: MARKETPLACES.TESTING,
     skuId: 0,
     campaignId: 0,
@@ -160,12 +146,9 @@ export const AdInfoObject = {
     adType: "",
     id: 1,
     score: 1,
-    status: 2 as ItemStatus,
+    status: 2,
 };
-
-export type AdInfo = typeof AdInfoObject;
-
-export const SkuFileObject = {
+exports.SkuFileObject = {
     id: 0,
     archiveId: 0,
     previousId: 0,
@@ -176,49 +159,16 @@ export const SkuFileObject = {
     url: "",
     label: "",
 };
-
-export type SkuFileInfo = typeof SkuFileObject;
-
-export type AdInteractionTypes = "clicks" | "views";
-
-export const AdInteractionInfoObject = {
+exports.AdInteractionInfoObject = {
     clicks: 0,
     views: 0,
     ctr: 0,
     id: 0,
 };
-export type AdInteractionInfo = typeof AdInteractionInfoObject;
-
-
-export const AdContextObject = {
-    ...AdInfoObject,
-    ...ProductInfoObject,
-    ...AdInteractionInfoObject,
-    skuId: 0,
-    ...SkuInfoObject,
-};
-
-export const AdsRotationObject = {
+exports.AdContextObject = Object.assign(Object.assign(Object.assign(Object.assign({}, exports.AdInfoObject), exports.ProductInfoObject), exports.AdInteractionInfoObject), exports.SkuInfoObject);
+exports.AdsRotationObject = {
     id: 0,
     inRotation: true,
     canGetInRotation: true,
     score: 0,
-};
-
-export type AdsRotationInfo = typeof AdsRotationObject;
-
-
-
-export type AdContext = typeof AdContextObject;
-
-export type AdInstanceInfo = AdContext & {
-    canGetInRotation: boolean,
-    inventory: {
-        total: number;
-        isUnlimited: boolean,
-        hasInventory: boolean;
-        inventories: SkuInventoryInfo[];
-    };
-    images: SkuFileInfo[];
-
 };
