@@ -35,6 +35,10 @@ appRouter.use('/', (req, _, next) => {
 const MarketplaceAds: Map<MARKETPLACES, Ad[]> = new Map();
 
 
+export function clearMarketplace() {
+    MarketplaceAds.clear();
+
+}
 
 appRouter.get("/testing/ads", async (req, res) => {
     console.log('string', req.marketplace);
@@ -42,7 +46,7 @@ appRouter.get("/testing/ads", async (req, res) => {
         return res.json(MarketplaceAds.get(req.marketplace));
     }
     const [ads] = await connection.raw(`
-select *,  sku.id as skuId, ads.id as id  from ads inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id order by ads_rotation.score desc
+select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ads.id = interactions.id inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id order by ads_rotation.score desc
     `) as [AdContext[]];
     console.log(ads, 'this are the ads');
     if (!ads || !Array.isArray(ads)) return res.json([]);

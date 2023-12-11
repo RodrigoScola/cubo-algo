@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.appRouter = void 0;
+exports.clearMarketplace = exports.appRouter = void 0;
 const express_1 = require("express");
 const Ad_1 = require("../Ad");
 const ErrorHandler_1 = require("../ErrorHandler");
@@ -31,13 +31,17 @@ exports.appRouter.use('/', (req, _, next) => {
     next();
 });
 const MarketplaceAds = new Map();
+function clearMarketplace() {
+    MarketplaceAds.clear();
+}
+exports.clearMarketplace = clearMarketplace;
 exports.appRouter.get("/testing/ads", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log('string', req.marketplace);
     if (MarketplaceAds.has(req.marketplace)) {
         return res.json(MarketplaceAds.get(req.marketplace));
     }
     const [ads] = yield server_1.connection.raw(`
-select *,  sku.id as skuId, ads.id as id  from ads inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id order by ads_rotation.score desc
+select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ads.id = interactions.id inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id order by ads_rotation.score desc
     `);
     console.log(ads, 'this are the ads');
     if (!ads || !Array.isArray(ads))

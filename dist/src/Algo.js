@@ -13,7 +13,7 @@ exports.run = void 0;
 const Ad_1 = require("./Ad");
 const server_1 = require("./server");
 const types_1 = require("./types/types");
-const ROTATION_ADS = 300000;
+const ROTATION_ADS = 3000;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         //HACK: cant think of anything else so this will do for now
@@ -23,6 +23,7 @@ function run() {
         ];
         yield (0, server_1.connection)('ads_rotation').where('id', '>', 0).del();
         const promiseMatrix = yield Promise.allSettled(platforms.map((platform) => __awaiter(this, void 0, void 0, function* () {
+            console.log(`fetching ads for platform ${platform}`);
             return yield server_1.connection.raw(`
       select * , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id where ads.marketplaceId = ${platform} 
         `);
@@ -43,7 +44,7 @@ function run() {
                                     skuIds.push(ad.skuId);
                                 }
                                 if (!(ad.marketplaceId in adsMarketplace)) {
-                                    adsMarketplace[ad.marketplaceId] = [];
+                                    adsMarketplace[ad.marketplaceId] = [ad];
                                 }
                                 else {
                                     adsMarketplace[ad.marketplaceId].push(ad);
@@ -73,17 +74,20 @@ function run() {
         const rotaionInfo = [];
         Object.values(adsMarketplace).forEach(ads => {
             const currentAds = [];
+            console.log(ads, 'htis are the ads');
             if (!ads)
                 return;
             ads.forEach(currentAd => {
+                console.log(currentAd, 'this is the current Ad');
                 if (!('skuId' in currentAd))
                     return;
                 const currentInventories = inventory.filter(inventoryItem => inventoryItem.skuId === currentAd.skuId);
                 const currentImages = images.filter(image => image.skuId === currentAd.skuId);
-                const isUnlimited = false;
+                let isUnlimited = false;
                 let total = 0;
                 currentInventories.forEach(inventoryItem => {
                     total += inventoryItem.availableQuantity;
+                    isUnlimited = isUnlimited || inventoryItem.isUnlimited;
                 });
                 const canGetInRotation = total > 0;
                 const instance = new Ad_1.Ad(Object.assign(Object.assign({}, currentAd), { canGetInRotation, inventory: {
@@ -93,8 +97,10 @@ function run() {
                         inventories: currentInventories
                     }, images: currentImages }));
                 instance.scoring
-                    .add(instance.context.inventory.total * (instance.context.canGetInRotation ? 1 : 0.0));
+                    .add(instance.context.ctr * 100);
                 instance.scoring.calculate();
+                instance.scoring.score *= instance.context.canGetInRotation ? 1 : 0.0;
+                console.log(instance, 'this is the instance');
                 currentAds.push(instance);
             });
             currentAds.sort((a, b) => b.score - a.score);
@@ -107,6 +113,7 @@ function run() {
                 });
             });
         });
+        console.log(rotaionInfo, 'this is the rotation info');
         yield Promise.allSettled(rotaionInfo.map((rotation) => __awaiter(this, void 0, void 0, function* () { return yield (0, server_1.connection)('ads_rotation').insert(rotation); })));
     });
 }

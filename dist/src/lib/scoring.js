@@ -11,7 +11,7 @@ class Scoring {
         return this;
     }
     calculate() {
-        this.score = this.numbers.reduce((acc, val) => acc + val, 0);
+        this.score = this.numbers.reduce((acc, val) => acc + val, 0) * 100;
     }
 }
 exports.Scoring = Scoring;

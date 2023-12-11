@@ -8,7 +8,7 @@ import { run } from "./Algo";
 import { ErrorHandler } from "./ErrorHandler";
 import { PORT, __DEV__ } from "./constants";
 import "./process";
-import { appRouter } from "./routes/router";
+import { appRouter, clearMarketplace } from "./routes/router";
 
 
 const totalCPUs = os.availableParallelism();
@@ -88,3 +88,10 @@ if (cluster.isPrimary && !__DEV__) {
   });
 
 }
+
+
+setInterval(async () => {
+  clearMarketplace();
+  await run();
+  console.log('running');
+}, 15000);
