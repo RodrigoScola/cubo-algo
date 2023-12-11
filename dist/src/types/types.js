@@ -1,65 +1,84 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MARKETPLACES = exports.SkuFileObject = exports.NewSkuFileObject = exports.UpdatingSkuInventoryObject = exports.SkuInventoryInfoObject = exports.NewSkuInventoryObject = exports.SkuInfoObject = exports.NewSkuInfoObject = exports.ProductInfoObject = exports.NewProductInfoObject = exports.UpdatingAdInfoObject = exports.MarketplaceObj = exports.InteractionObject = exports.NewInteractionObject = exports.AdInfoObject = exports.NewAdInfoObject = exports.PostStatus = void 0;
-exports.PostStatus = {
+exports.AdsRotationObject = exports.AdContextObject = exports.AdInteractionInfoObject = exports.SkuFileObject = exports.AdInfoObject = exports.SkuInventoryInfoObject = exports.MarketplaceObj = exports.SkuInfoObject = exports.ProductInfoObject = exports.ItemStatus = exports.MARKETPLACES = exports.CMS_PLATFORMS = void 0;
+var CMS_PLATFORMS;
+(function (CMS_PLATFORMS) {
+    CMS_PLATFORMS[CMS_PLATFORMS["VTEX"] = 1] = "VTEX";
+})(CMS_PLATFORMS || (exports.CMS_PLATFORMS = CMS_PLATFORMS = {}));
+var MARKETPLACES;
+(function (MARKETPLACES) {
+    MARKETPLACES[MARKETPLACES["WECODE"] = 1] = "WECODE";
+    MARKETPLACES[MARKETPLACES["TESTING"] = 2] = "TESTING";
+})(MARKETPLACES || (exports.MARKETPLACES = MARKETPLACES = {}));
+exports.ItemStatus = {
+    /**
+     * Item vai ser usado para todas as coisas
+     *  - algoritmos, sites, dashboards... tudo
+     *
+     * Todas as pessoas podem ver, mesmo sem permissao
+     *
+     */
     ACTIVE: 1,
+    /**
+     * Item nao vai ser usado em nada
+     * Algumas pessoas podem ver, tendo a permissao
+     *  - devs da wecode
+     */
     INACTIVE: 0,
+    /**
+     * Item pode ser visto no sites/dashboards mas nao sera utilizado no algoritmo,
+     */
+    PAUSED: 2,
+    /**
+     * Item esta sendo postado, utilizado para itens que dependem de outros para estarem ativos
+     * - ex: marketplace, campanhas
+     * normalmente vai virar ativo assim que as criacas completarem de ficarem ativos
+     */
+    STARTING: 3,
+    /**
+     * Item esta sendo deletado, utilizado para itens que dependem de outros para estarem ativos
+     * - ex: marketplace, campanhas
+     * normalmente vai virar inativo assim que as criacas completarem de ficarem inativos
+     */
+    ENDING: 4,
+    /**
+     * Item foi blockeado por algum motivo, para nao remover da database, porque temos que ter a informacao,
+     * para tomar as medidas necessarias. so devemos mudar a flag dele
+     * vai ser tratado como item inativo
+     */
+    BLOCKED: 5,
 };
-exports.NewAdInfoObject = {
-    marketplaceId: 3,
-    skuId: 0,
-    price: 300,
-    productId: 3,
-    adType: "",
-    status: 0,
-};
-exports.AdInfoObject = Object.assign(Object.assign({}, exports.NewAdInfoObject), { score: 9, status: 0, skuId: 0, id: 0 });
-exports.NewInteractionObject = {
-    clicks: 0,
-    views: 0,
-    ctr: 0,
-};
-exports.InteractionObject = Object.assign(Object.assign({}, exports.NewInteractionObject), { id: 0 });
-exports.MarketplaceObj = {
-    id: 9,
-    name: "wecode",
-};
-exports.UpdatingAdInfoObject = Object.entries(exports.NewAdInfoObject).reduce((accumulator, [key, value]) => {
-    if (key === "id") {
-        return accumulator;
-    }
-    if (key) {
-        Object.assign(accumulator, { [key]: value });
-    }
-    return accumulator;
-}, {});
-exports.NewProductInfoObject = {
-    userId: "",
-    name: "",
-    departmentId: 0,
-    categoryId: 0,
-    brandId: 0,
-    linkId: "",
-    refId: "",
-    isVisible: true,
-    description: "",
-    descriptionShort: "",
-    releaseDate: "",
+exports.ProductInfoObject = {
+    name: "Mesa 2 Gav Az-2007 Branco/nogal teste de update",
+    departmentId: 114,
+    categoryId: 116,
+    brandId: 2000007,
+    linkId: "Mesa-2-Gav-Az-2007-Branco-nogal-teste-de-update",
+    RefId: "123",
+    isVisible: 1,
+    description: "7447486798798754541<br/><br/><strong>espec 1:</strong> cor novinha<br/><br/><strong>123456:</strong> 654321<br/><br/>",
+    descriptionShort: "7447486798798754541",
     keyWords: "",
+    marketplaceId: MARKETPLACES.TESTING,
     title: "",
     taxCode: "",
-    metaTagDescription: "",
-    supplierId: "",
-    showWithoutStock: true,
-    adWordsRemarketingCode: "",
-    lomadeeCampaignCode: "",
-    status: 0,
-    score: 0,
+    metaTagDescription: "74b47486798798754541<br/><br/><strong>espec 1:</strong> cor ovinhabr/><br/><strong>123456:</strong> 654321<br/><br/>",
+    supplierId: null,
+    showWithoutStock: 0,
+    adWordsRemarketingCode: null,
+    lomadeeCampaignCode: null,
+    score: null,
+    status: 1,
+    previousId: 0,
+    releaseDate: "2022-10-26T00:00:00.000Z",
+    id: 0,
 };
-exports.ProductInfoObject = Object.assign(Object.assign({}, exports.NewProductInfoObject), { id: 0 });
-exports.NewSkuInfoObject = {
+exports.SkuInfoObject = {
     isPersisted: false,
     productId: 0,
+    marketplaceId: MARKETPLACES.TESTING,
+    estimatedDateArrival: Date.now(),
+    previousId: 0,
     status: 0,
     name: "",
     height: 0,
@@ -78,7 +97,6 @@ exports.NewSkuInfoObject = {
     dateUpdated: "",
     rewardValue: 0,
     commercialConditionId: 0,
-    estimatedDateArrival: "",
     flagKitItensSellApart: false,
     manufacturerCode: "",
     referenceStockKeepingUnitId: "",
@@ -90,58 +108,67 @@ exports.NewSkuInfoObject = {
     isTransported: false,
     isGiftCardRecharge: false,
     modalType: "",
-    isKitOptimized: false,
+    isKitOptimized: 0,
+    id: 0,
 };
-exports.SkuInfoObject = Object.assign(Object.assign({}, exports.NewSkuInfoObject), { id: 0 });
-exports.NewSkuInventoryObject = {
-    skuId: 25,
-    warehouseId: "1_1",
-    previousSkuId: 0,
-    totalQuantity: 0,
-    reservedQuantity: 0,
-    availableQuantity: 0,
-    isUnlimited: false,
-    timeToRefill: null,
-    dateOfSupplyUtc: null,
-    supplyLotId: null,
-    keepSellingAfterExpiration: false,
-    transfer: null,
-    leadTime: "00:00:00",
-    previousWarehouseId: "",
-    marketplaceId: 0,
+exports.MarketplaceObj = {
+    name: "wecode",
+    platformId: 1,
+    id: 9,
     status: 0,
-    id: "",
 };
-exports.SkuInventoryInfoObject = Object.assign({}, exports.NewSkuInventoryObject);
-exports.UpdatingSkuInventoryObject = {
-    skuId: 25,
-    warehouseId: "1_1",
-    previousSkuId: 0,
-    totalQuantity: 0,
-    reservedQuantity: 0,
-    availableQuantity: 0,
-    isUnlimited: false,
+exports.SkuInventoryInfoObject = {
+    id: "41.123",
+    skuId: 41,
+    warehouseId: "ewaoma1",
+    warehouseName: "Estoque principal",
+    totalQuantity: 1000001,
+    reservedQuantity: 1,
+    hasUnlimitedQuantity: 1,
+    availableQuantity: 2,
     timeToRefill: null,
-    dateOfSupplyUtc: null,
-    supplyLotId: null,
-    keepSellingAfterExpiration: false,
-    transfer: null,
     leadTime: "00:00:00",
-    previousWarehouseId: "",
-    marketplaceId: 0,
-    status: 0,
-    id: "",
+    dateOfSupplyUtc: null,
+    status: 1,
+    isUnlimited: true,
+    previousSkuId: 2,
+    supplyLotId: "3",
+    marketplaceId: MARKETPLACES.TESTING,
+    keepSellingAfterExpiration: true,
+    transfer: true,
+    previousWarehouseId: "2.1_1",
 };
-exports.NewSkuFileObject = {
+exports.AdInfoObject = {
+    marketplaceId: MARKETPLACES.TESTING,
+    skuId: 0,
+    campaignId: 0,
+    productId: 3,
+    adType: "",
+    id: 1,
+    score: 1,
+    status: 2,
+};
+exports.SkuFileObject = {
+    id: 0,
     archiveId: 0,
+    previousId: 0,
+    marketplaceId: MARKETPLACES.TESTING,
     skuId: 0,
     name: "",
-    isMain: false,
+    isMain: 0,
     url: "",
     label: "",
 };
-exports.SkuFileObject = Object.assign(Object.assign({ id: 0 }, exports.NewSkuFileObject), { skuId: 0 });
-var MARKETPLACES;
-(function (MARKETPLACES) {
-    MARKETPLACES[MARKETPLACES["WECODE"] = 1] = "WECODE";
-})(MARKETPLACES || (exports.MARKETPLACES = MARKETPLACES = {}));
+exports.AdInteractionInfoObject = {
+    clicks: 0,
+    views: 0,
+    ctr: 0,
+    id: 0,
+};
+exports.AdContextObject = Object.assign(Object.assign(Object.assign(Object.assign({}, exports.AdInfoObject), exports.ProductInfoObject), exports.AdInteractionInfoObject), exports.SkuInfoObject);
+exports.AdsRotationObject = {
+    id: 0,
+    inRotation: true,
+    canGetInRotation: true,
+    score: 0,
+};
