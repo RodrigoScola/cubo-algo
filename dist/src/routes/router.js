@@ -123,7 +123,6 @@ select *, products.id as productId, ads.id as id from ads inner join ads_rotatio
             prices.push(imageItem);
         });
     }
-    console.log({ pricePromise });
     const allAds = [];
     console.log(prices, 'prices');
     ads.forEach(ad => {
