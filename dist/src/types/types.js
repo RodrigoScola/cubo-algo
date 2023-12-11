@@ -165,7 +165,7 @@ exports.AdInteractionInfoObject = {
     ctr: 0,
     id: 0,
 };
-exports.AdContextObject = Object.assign(Object.assign(Object.assign(Object.assign({}, exports.AdInfoObject), exports.ProductInfoObject), exports.AdInteractionInfoObject), exports.SkuInfoObject);
+exports.AdContextObject = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, exports.AdInfoObject), exports.ProductInfoObject), exports.AdInteractionInfoObject), { skuId: 0 }), exports.SkuInfoObject);
 exports.AdsRotationObject = {
     id: 0,
     inRotation: true,
