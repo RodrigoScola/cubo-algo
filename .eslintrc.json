@@ -13,7 +13,7 @@
   "rules": {
     "no-await-in-loop": "error",
     // "class-methods-use-this": ["warn", { "enforceForClassFields": true }],
-    "linebreak-style": ["error", "windows"],
+    "linebreak-style": ["error", "linux"],
     "max-depth": ["warn", 3],
     "no-nested-ternary": "error",
     "no-useless-constructor": "error",
