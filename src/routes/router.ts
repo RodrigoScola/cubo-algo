@@ -41,14 +41,12 @@ export function clearMarketplace() {
 }
 
 appRouter.get("/testing/ads", async (req, res) => {
-    console.log('string', req.marketplace);
     if (MarketplaceAds.has(req.marketplace)) {
         return res.json(MarketplaceAds.get(req.marketplace));
     }
     const [ads] = await connection.raw(`
 select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ads.id = interactions.id inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id order by ads_rotation.score desc
     `) as [AdContext[]];
-    console.log(ads, 'this are the ads');
     if (!ads || !Array.isArray(ads)) return res.json([]);
 
     const skuIds: number[] = [];
@@ -57,7 +55,6 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
         skuIds.push(ad.skuId);
     });
 
-    console.log(ads, 'the ads');
 
     const images: SkuFileInfo[] = [];
     const inventories: SkuInventoryInfo[] = [];
@@ -98,7 +95,6 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
         const price = prices.filter(image => image.skuId === ad.skuId);
         const totalInventory = currentInventories.reduce((a, b) => a + b.availableQuantity, 0);
 
-        console.log(price, 'AAAA');
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
@@ -128,7 +124,6 @@ appRouter.get("/ads", async (req, res) => {
     const [ads] = await connection.raw(`
 select *, products.id as productId, ads.id as id from ads inner join ads_rotation on ads.id = ads_rotation.id  inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id where ads_rotation.inRotation = 1 order by ads_rotation.score desc
     `) as [AdContext[]];
-    console.log(ads, 'this are the ads');
     const skuIds: number[] = [];
     ads.forEach(ad => {
         if (!('skuId' in ad) && skuIds.indexOf(ad['skuId'])) return;

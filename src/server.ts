@@ -85,9 +85,10 @@ if (cluster.isPrimary && !__DEV__) {
 
 }
 
+const TIME_INTERVAL = __DEV__ ? 10000 : 300000;
 
 setInterval(async () => {
   clearMarketplace();
   await run();
   console.log('running');
-}, 15000);
+}, TIME_INTERVAL);

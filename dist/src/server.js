@@ -83,8 +83,9 @@ else {
         console.log(`Server is running in http://localhost:${constants_1.PORT}`);
     }));
 }
+const TIME_INTERVAL = constants_1.__DEV__ ? 10000 : 300000;
 setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
     (0, router_1.clearMarketplace)();
     yield (0, Algo_1.run)();
     console.log('running');
-}), 15000);
+}), TIME_INTERVAL);

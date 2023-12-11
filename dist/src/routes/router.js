@@ -36,14 +36,12 @@ function clearMarketplace() {
 }
 exports.clearMarketplace = clearMarketplace;
 exports.appRouter.get("/testing/ads", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('string', req.marketplace);
     if (MarketplaceAds.has(req.marketplace)) {
         return res.json(MarketplaceAds.get(req.marketplace));
     }
     const [ads] = yield server_1.connection.raw(`
 select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ads.id = interactions.id inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id order by ads_rotation.score desc
     `);
-    console.log(ads, 'this are the ads');
     if (!ads || !Array.isArray(ads))
         return res.json([]);
     const skuIds = [];
@@ -52,7 +50,6 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
             return;
         skuIds.push(ad.skuId);
     });
-    console.log(ads, 'the ads');
     const images = [];
     const inventories = [];
     const prices = [];
@@ -84,7 +81,6 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
         const currentInventories = inventories.filter(image => image.skuId === ad.skuId);
         const price = prices.filter(image => image.skuId === ad.skuId);
         const totalInventory = currentInventories.reduce((a, b) => a + b.availableQuantity, 0);
-        console.log(price, 'AAAA');
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         allAds.push(new Ad_1.Ad(Object.assign(Object.assign({}, ad), { images: image ? image : [], prices: price, inventory: {
@@ -105,7 +101,6 @@ exports.appRouter.get("/ads", (req, res) => __awaiter(void 0, void 0, void 0, fu
     const [ads] = yield server_1.connection.raw(`
 select *, products.id as productId, ads.id as id from ads inner join ads_rotation on ads.id = ads_rotation.id  inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id where ads_rotation.inRotation = 1 order by ads_rotation.score desc
     `);
-    console.log(ads, 'this are the ads');
     const skuIds = [];
     ads.forEach(ad => {
         if (!('skuId' in ad) && skuIds.indexOf(ad['skuId']))
