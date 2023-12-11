@@ -55,13 +55,20 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
     console.log(ads, 'the ads');
     const images = [];
     const inventories = [];
-    const [inventoriesPromise, imagePromise] = yield Promise.allSettled([
+    const prices = [];
+    const [inventoriesPromise, imagePromise, pricePromise] = yield Promise.allSettled([
         (0, server_1.connection)('sku_inventory').select('*').whereIn('skuId', skuIds),
         (0, server_1.connection)('sku_file').select('*').whereIn('skuId', skuIds),
+        (0, server_1.connection)('prices').select('*').whereIn('skuId', skuIds),
     ]);
     if (imagePromise.status === 'fulfilled') {
         imagePromise.value.forEach(imageItem => {
             images.push(imageItem);
+        });
+    }
+    if (pricePromise.status === 'fulfilled') {
+        pricePromise.value.forEach(imageItem => {
+            prices.push(imageItem);
         });
     }
     if (inventoriesPromise.status === 'fulfilled') {
@@ -75,10 +82,12 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
             return;
         const image = images.filter(image => image.skuId === ad.skuId);
         const currentInventories = inventories.filter(image => image.skuId === ad.skuId);
+        const price = prices.filter(image => image.skuId === ad.skuId);
         const totalInventory = currentInventories.reduce((a, b) => a + b.availableQuantity, 0);
+        console.log(price, 'AAAA');
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        allAds.push(new Ad_1.Ad(Object.assign(Object.assign({}, ad), { images: image ? image : [], inventory: {
+        allAds.push(new Ad_1.Ad(Object.assign(Object.assign({}, ad), { images: image ? image : [], prices: price, inventory: {
                 total: totalInventory,
                 isUnlimited: currentInventories.some(a => a.isUnlimited),
                 hasInventory: totalInventory > 0,
@@ -104,21 +113,30 @@ select *, products.id as productId, ads.id as id from ads inner join ads_rotatio
         skuIds.push(ad.skuId);
     });
     const images = [];
-    const [, imagePromise] = yield Promise.allSettled([
-        (0, server_1.connection)('sku_inventory').select('*').whereIn('skuId', skuIds),
+    const prices = [];
+    const [imagePromise, pricePromise] = yield Promise.allSettled([
         (0, server_1.connection)('sku_file').select('*').whereIn('skuId', skuIds),
+        (0, server_1.connection)('prices').select('*').whereIn('skuId', skuIds),
     ]);
     if (imagePromise.status === 'fulfilled') {
         imagePromise.value.forEach(imageItem => {
             images.push(imageItem);
         });
     }
+    if (pricePromise.status === 'fulfilled') {
+        pricePromise.value.forEach(imageItem => {
+            prices.push(imageItem);
+        });
+    }
+    console.log({ pricePromise });
     const allAds = [];
+    console.log(prices, 'prices');
     ads.forEach(ad => {
         const image = images.filter(image => image.skuId === ad.skuId);
+        const currentPrices = prices.filter(image => image.skuId === ad.skuId);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        allAds.push(new Ad_1.Ad(Object.assign(Object.assign({}, ad), { images: image ? image : [] })));
+        allAds.push(new Ad_1.Ad(Object.assign(Object.assign({}, ad), { prices: currentPrices, images: image ? image : [] })));
     });
     MarketplaceAds.set(req.marketplace, allAds);
     return res.json(allAds.map(item => item.info));

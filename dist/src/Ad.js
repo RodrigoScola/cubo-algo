@@ -25,6 +25,7 @@ class Ad {
             metaTagDescription: this.context.metaTagDescription,
             linkId: `${this.context.linkId}/p`,
             images: this.context.images,
+            prices: this.context.prices
         };
     }
 }

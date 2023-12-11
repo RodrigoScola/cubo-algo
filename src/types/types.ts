@@ -187,6 +187,38 @@ export const AdInteractionInfoObject = {
     ctr: 0,
     id: 0,
 };
+
+export const PriceInfoObject = {
+    skuId: 1,
+    id: 0,
+    listPrice: 50,
+    costPrice: 90,
+    marketplaceId: MARKETPLACES.TESTING,
+    markup: 30,
+    previousId: 0,
+    basePrice: 117,
+
+    fixedPrices: [
+        {
+            tradePolicyId: "1",
+            value: 50.5,
+            listPrice: 50.5,
+            minQuantity: 2,
+            dateRange: {
+                from: "2021-12-31T01:00:00Z",
+                to: "2022-12-31T01:00:00Z",
+            },
+        },
+        {
+            tradePolicyId: "2",
+            value: 30,
+            listPrice: 50,
+            minQuantity: 2,
+        },
+    ],
+};
+export type PriceInfo = typeof PriceInfoObject;
+
 export type AdInteractionInfo = typeof AdInteractionInfoObject;
 
 
@@ -219,6 +251,7 @@ export type AdInstanceInfo = AdContext & {
         hasInventory: boolean;
         inventories: SkuInventoryInfo[];
     };
+    prices?: PriceInfo[];
     images: SkuFileInfo[];
 
 };

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdsRotationObject = exports.AdContextObject = exports.AdInteractionInfoObject = exports.SkuFileObject = exports.AdInfoObject = exports.SkuInventoryInfoObject = exports.MarketplaceObj = exports.SkuInfoObject = exports.ProductInfoObject = exports.ItemStatus = exports.MARKETPLACES = exports.CMS_PLATFORMS = void 0;
+exports.AdsRotationObject = exports.AdContextObject = exports.PriceInfoObject = exports.AdInteractionInfoObject = exports.SkuFileObject = exports.AdInfoObject = exports.SkuInventoryInfoObject = exports.MarketplaceObj = exports.SkuInfoObject = exports.ProductInfoObject = exports.ItemStatus = exports.MARKETPLACES = exports.CMS_PLATFORMS = void 0;
 var CMS_PLATFORMS;
 (function (CMS_PLATFORMS) {
     CMS_PLATFORMS[CMS_PLATFORMS["VTEX"] = 1] = "VTEX";
@@ -164,6 +164,34 @@ exports.AdInteractionInfoObject = {
     views: 0,
     ctr: 0,
     id: 0,
+};
+exports.PriceInfoObject = {
+    skuId: 1,
+    id: 0,
+    listPrice: 50,
+    costPrice: 90,
+    marketplaceId: MARKETPLACES.TESTING,
+    markup: 30,
+    previousId: 0,
+    basePrice: 117,
+    fixedPrices: [
+        {
+            tradePolicyId: "1",
+            value: 50.5,
+            listPrice: 50.5,
+            minQuantity: 2,
+            dateRange: {
+                from: "2021-12-31T01:00:00Z",
+                to: "2022-12-31T01:00:00Z",
+            },
+        },
+        {
+            tradePolicyId: "2",
+            value: 30,
+            listPrice: 50,
+            minQuantity: 2,
+        },
+    ],
 };
 exports.AdContextObject = Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, exports.AdInfoObject), exports.ProductInfoObject), exports.AdInteractionInfoObject), { skuId: 0 }), exports.SkuInfoObject);
 exports.AdsRotationObject = {

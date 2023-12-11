@@ -61,15 +61,26 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
 
     const images: SkuFileInfo[] = [];
     const inventories: SkuInventoryInfo[] = [];
-    const [inventoriesPromise, imagePromise] = await Promise.allSettled([
+    const prices: any[] = [];
+    const [inventoriesPromise, imagePromise, pricePromise] = await Promise.allSettled([
         connection('sku_inventory').select('*').whereIn('skuId', skuIds),
         connection('sku_file').select('*').whereIn('skuId', skuIds),
+        connection('prices').select('*').whereIn('skuId', skuIds),
+
     ]);
+
     if (imagePromise.status === 'fulfilled') {
         imagePromise.value.forEach(imageItem => {
             images.push(imageItem);
         });
     }
+
+    if (pricePromise.status === 'fulfilled') {
+        pricePromise.value.forEach(imageItem => {
+            prices.push(imageItem);
+        });
+    }
+
     if (inventoriesPromise.status === 'fulfilled') {
         inventoriesPromise.value.forEach(inventory => {
             inventories.push(inventory);
@@ -84,14 +95,17 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
         if (!ad) return;
         const image = images.filter(image => image.skuId === ad.skuId);
         const currentInventories = inventories.filter(image => image.skuId === ad.skuId);
-
+        const price = prices.filter(image => image.skuId === ad.skuId);
         const totalInventory = currentInventories.reduce((a, b) => a + b.availableQuantity, 0);
+
+        console.log(price, 'AAAA');
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         allAds.push(new Ad({
             ...ad,
             images: image ? image : [],
+            prices: price,
             inventory: {
                 total: totalInventory,
                 isUnlimited: currentInventories.some(a => a.isUnlimited),
@@ -122,9 +136,10 @@ select *, products.id as productId, ads.id as id from ads inner join ads_rotatio
     });
 
     const images: SkuFileInfo[] = [];
-    const [, imagePromise] = await Promise.allSettled([
-        connection('sku_inventory').select('*').whereIn('skuId', skuIds),
+    const prices: any[] = [];
+    const [imagePromise, pricePromise] = await Promise.allSettled([
         connection('sku_file').select('*').whereIn('skuId', skuIds),
+        connection('prices').select('*').whereIn('skuId', skuIds),
     ]);
     if (imagePromise.status === 'fulfilled') {
         imagePromise.value.forEach(imageItem => {
@@ -132,18 +147,24 @@ select *, products.id as productId, ads.id as id from ads inner join ads_rotatio
         });
     }
 
-
+    if (pricePromise.status === 'fulfilled') {
+        pricePromise.value.forEach(imageItem => {
+            prices.push(imageItem);
+        });
+    }
+    console.log({ pricePromise });
 
     const allAds: Ad[] = [];
 
-
-
+    console.log(prices, 'prices');
     ads.forEach(ad => {
         const image = images.filter(image => image.skuId === ad.skuId);
+        const currentPrices = prices.filter(image => image.skuId === ad.skuId);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         allAds.push(new Ad({
             ...ad,
+            prices: currentPrices,
             images: image ? image : [],
         } as AdContext));
     });

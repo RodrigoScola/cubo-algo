@@ -16,7 +16,6 @@ export class Ad {
         this.scoring.add(num);
     }
     get info() {
-
         return {
             id: this.context.id,
             status: this.context.status,
@@ -28,6 +27,7 @@ export class Ad {
             metaTagDescription: this.context.metaTagDescription,
             linkId: `${this.context.linkId}/p`,
             images: this.context.images,
+            prices: this.context.prices
         };
     }
 }
