@@ -7,7 +7,7 @@ import { AdContext, AdsRotationInfo, MARKETPLACES, SkuFileInfo, SkuInventoryInfo
 
 
 
-const ROTATION_ADS = 3000;
+const ROTATION_ADS = 3;
 
 
 export async function run() {
