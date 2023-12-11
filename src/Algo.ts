@@ -39,29 +39,22 @@ export async function run() {
     } as Record<MARKETPLACES, AdContext[]>;
 
     promiseMatrix.forEach(promise => {
-        if (promise.status === 'fulfilled') {
-            if (Array.isArray(promise.value)) {
-                promise.value.forEach(ads => {
-                    if (Array.isArray(ads)) {
-                        ads.forEach(ad => {
-                            if (!ad) return;
-                            if (!('id' in ad)) return;
+        if (promise.status === 'rejected' || !Array.isArray(promise.value)) return;
+        promise.value.forEach(ads => {
+            if (!Array.isArray(ads)) return;
+            ads.forEach(ad => {
+                if (!ad || !('id' in ad)) return;
+                if ('skuId' in ad && skuIds.indexOf(ad.skuId) === -1) {
+                    skuIds.push(ad.skuId);
+                }
+                if (!(ad.marketplaceId in adsMarketplace)) {
+                    adsMarketplace[ad.marketplaceId] = [ad];
+                } else {
+                    adsMarketplace[ad.marketplaceId].push(ad);
+                }
+            });
 
-                            if ('skuId' in ad && skuIds.indexOf(ad.skuId) === -1) {
-                                skuIds.push(ad.skuId);
-                            }
-                            if (!(ad.marketplaceId in adsMarketplace)) {
-                                adsMarketplace[ad.marketplaceId] = [ad];
-                            }
-                            else {
-                                adsMarketplace[ad.marketplaceId].push(ad);
-                            }
-                        });
-
-                    }
-                });
-            }
-        }
+        });
     });
     const [inventoryPromise, imagePromise] = await Promise.allSettled([
         connection('sku_inventory').select('*').whereIn('skuId', skuIds),
@@ -90,6 +83,7 @@ export async function run() {
         ads.forEach(currentAd => {
             console.log(currentAd, 'this is the current Ad');
             if (!('skuId' in currentAd)) return;
+
             const currentInventories = inventory.filter(inventoryItem => inventoryItem.skuId === currentAd.skuId);
 
             const currentImages = images.filter(image => image.skuId === currentAd.skuId);
@@ -102,6 +96,11 @@ export async function run() {
                 isUnlimited = isUnlimited || inventoryItem.isUnlimited;
             });
 
+            if (currentAd.skuId === 1) {
+                console.log(currentInventories);
+
+                console.log(total, currentAd.skuId, isUnlimited, 'this is the total');
+            }
             const canGetInRotation = total > 0;
 
             const instance = new Ad({

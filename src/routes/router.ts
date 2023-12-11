@@ -83,12 +83,21 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
     ads.forEach(ad => {
         if (!ad) return;
         const image = images.filter(image => image.skuId === ad.skuId);
+        const currentInventories = inventories.filter(image => image.skuId === ad.skuId);
+
+        const totalInventory = currentInventories.reduce((a, b) => a + b.availableQuantity, 0);
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         allAds.push(new Ad({
             ...ad,
             images: image ? image : [],
+            inventory: {
+                total: totalInventory,
+                isUnlimited: currentInventories.some(a => a.isUnlimited),
+                hasInventory: totalInventory > 0,
+                inventories: currentInventories
+            },
         }));
     });
 
@@ -103,7 +112,7 @@ appRouter.get("/ads", async (req, res) => {
     }
 
     const [ads] = await connection.raw(`
-select products.id as productId,* from ads inner join ads_rotation on ads.id = ads_rotation.id  inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id
+select *, products.id as productId, ads.id as id from ads inner join ads_rotation on ads.id = ads_rotation.id  inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id where ads_rotation.inRotation = 1 order by ads_rotation.score desc
     `) as [AdContext[]];
     console.log(ads, 'this are the ads');
     const skuIds: number[] = [];

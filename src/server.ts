@@ -10,7 +10,6 @@ import { PORT, __DEV__ } from "./constants";
 import "./process";
 import { appRouter, clearMarketplace } from "./routes/router";
 
-
 const totalCPUs = os.availableParallelism();
 Error.stackTraceLimit = Infinity;
 const config: Knex.Config = {
@@ -81,9 +80,6 @@ if (cluster.isPrimary && !__DEV__) {
     console.clear();
     await createTables();
     run();
-
-
-
     console.log(`Server is running in http://localhost:${PORT}`);
   });
 
