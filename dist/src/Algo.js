@@ -13,7 +13,7 @@ exports.run = void 0;
 const Ad_1 = require("./Ad");
 const server_1 = require("./server");
 const types_1 = require("./types/types");
-const ROTATION_ADS = 3000;
+const ROTATION_ADS = 3;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         //HACK: cant think of anything else so this will do for now
@@ -31,29 +31,25 @@ function run() {
         const skuIds = [];
         const adsMarketplace = {};
         promiseMatrix.forEach(promise => {
-            if (promise.status === 'fulfilled') {
-                if (Array.isArray(promise.value)) {
-                    promise.value.forEach(ads => {
-                        if (Array.isArray(ads)) {
-                            ads.forEach(ad => {
-                                if (!ad)
-                                    return;
-                                if (!('id' in ad))
-                                    return;
-                                if ('skuId' in ad && skuIds.indexOf(ad.skuId) === -1) {
-                                    skuIds.push(ad.skuId);
-                                }
-                                if (!(ad.marketplaceId in adsMarketplace)) {
-                                    adsMarketplace[ad.marketplaceId] = [ad];
-                                }
-                                else {
-                                    adsMarketplace[ad.marketplaceId].push(ad);
-                                }
-                            });
-                        }
-                    });
-                }
-            }
+            if (promise.status === 'rejected' || !Array.isArray(promise.value))
+                return;
+            promise.value.forEach(ads => {
+                if (!Array.isArray(ads))
+                    return;
+                ads.forEach(ad => {
+                    if (!ad || !('id' in ad))
+                        return;
+                    if ('skuId' in ad && skuIds.indexOf(ad.skuId) === -1) {
+                        skuIds.push(ad.skuId);
+                    }
+                    if (!(ad.marketplaceId in adsMarketplace)) {
+                        adsMarketplace[ad.marketplaceId] = [ad];
+                    }
+                    else {
+                        adsMarketplace[ad.marketplaceId].push(ad);
+                    }
+                });
+            });
         });
         const [inventoryPromise, imagePromise] = yield Promise.allSettled([
             (0, server_1.connection)('sku_inventory').select('*').whereIn('skuId', skuIds),
@@ -89,6 +85,10 @@ function run() {
                     total += inventoryItem.availableQuantity;
                     isUnlimited = isUnlimited || inventoryItem.isUnlimited;
                 });
+                if (currentAd.skuId === 1) {
+                    console.log(currentInventories);
+                    console.log(total, currentAd.skuId, isUnlimited, 'this is the total');
+                }
                 const canGetInRotation = total > 0;
                 const instance = new Ad_1.Ad(Object.assign(Object.assign({}, currentAd), { canGetInRotation, inventory: {
                         total,

@@ -74,9 +74,16 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
         if (!ad)
             return;
         const image = images.filter(image => image.skuId === ad.skuId);
+        const currentInventories = inventories.filter(image => image.skuId === ad.skuId);
+        const totalInventory = currentInventories.reduce((a, b) => a + b.availableQuantity, 0);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        allAds.push(new Ad_1.Ad(Object.assign(Object.assign({}, ad), { images: image ? image : [] })));
+        allAds.push(new Ad_1.Ad(Object.assign(Object.assign({}, ad), { images: image ? image : [], inventory: {
+                total: totalInventory,
+                isUnlimited: currentInventories.some(a => a.isUnlimited),
+                hasInventory: totalInventory > 0,
+                inventories: currentInventories
+            } })));
     });
     return res.json(allAds);
 }));
@@ -87,7 +94,7 @@ exports.appRouter.get("/ads", (req, res) => __awaiter(void 0, void 0, void 0, fu
         return res.json((_a = MarketplaceAds.get(req.marketplace)) === null || _a === void 0 ? void 0 : _a.map(item => item.info));
     }
     const [ads] = yield server_1.connection.raw(`
-select products.id as productId,* from ads inner join ads_rotation on ads.id = ads_rotation.id  inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id
+select *, products.id as productId, ads.id as id from ads inner join ads_rotation on ads.id = ads_rotation.id  inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id where ads_rotation.inRotation = 1 order by ads_rotation.score desc
     `);
     console.log(ads, 'this are the ads');
     const skuIds = [];
