@@ -18,8 +18,8 @@ const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const knex_1 = require("knex");
 const os_1 = __importDefault(require("os"));
+const Algo_1 = require("./Algo");
 const ErrorHandler_1 = require("./ErrorHandler");
-const algo_1 = require("./algo");
 const constants_1 = require("./constants");
 require("./process");
 const router_1 = require("./routes/router");
@@ -79,7 +79,7 @@ else {
     app.listen(constants_1.PORT, () => __awaiter(void 0, void 0, void 0, function* () {
         console.clear();
         yield createTables();
-        (0, algo_1.run)();
+        (0, Algo_1.run)();
         console.log(`Server is running in http://localhost:${constants_1.PORT}`);
     }));
 }
