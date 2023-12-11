@@ -9,54 +9,105 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Algo = exports.SETTINGS_FLAGS = exports.isSettingType = void 0;
-const marketplace_1 = require("./marketplace");
-function isSettingType(settingName) {
-    return Object.keys(exports.SETTINGS_FLAGS).includes(settingName);
+exports.run = void 0;
+const Ad_1 = require("./Ad");
+const server_1 = require("./server");
+const types_1 = require("./types/types");
+const ROTATION_ADS = 300000;
+function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        //HACK: cant think of anything else so this will do for now
+        //HACK: platforms are the things that the websites that we are going to put ads on  
+        const platforms = [
+            types_1.MARKETPLACES.TESTING, types_1.MARKETPLACES.WECODE
+        ];
+        yield (0, server_1.connection)('ads_rotation').where('id', '>', 0).del();
+        const promiseMatrix = yield Promise.allSettled(platforms.map((platform) => __awaiter(this, void 0, void 0, function* () {
+            return yield server_1.connection.raw(`
+      select * , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id where ads.marketplaceId = ${platform} 
+        `);
+        })));
+        const skuIds = [];
+        const adsMarketplace = {};
+        promiseMatrix.forEach(promise => {
+            if (promise.status === 'fulfilled') {
+                if (Array.isArray(promise.value)) {
+                    promise.value.forEach(ads => {
+                        if (Array.isArray(ads)) {
+                            ads.forEach(ad => {
+                                if (!ad)
+                                    return;
+                                if (!('id' in ad))
+                                    return;
+                                if ('skuId' in ad && skuIds.indexOf(ad.skuId) === -1) {
+                                    skuIds.push(ad.skuId);
+                                }
+                                if (!(ad.marketplaceId in adsMarketplace)) {
+                                    adsMarketplace[ad.marketplaceId] = [];
+                                }
+                                else {
+                                    adsMarketplace[ad.marketplaceId].push(ad);
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        });
+        const [inventoryPromise, imagePromise] = yield Promise.allSettled([
+            (0, server_1.connection)('sku_inventory').select('*').whereIn('skuId', skuIds),
+            (0, server_1.connection)('sku_file').select('*').whereIn('skuId', skuIds),
+        ]);
+        const inventory = [];
+        const images = [];
+        if (inventoryPromise.status === 'fulfilled') {
+            inventoryPromise.value.forEach(inventoryItem => {
+                inventory.push(inventoryItem);
+            });
+        }
+        if (imagePromise.status === 'fulfilled') {
+            imagePromise.value.forEach(skuFile => {
+                images.push(skuFile);
+            });
+        }
+        const rotaionInfo = [];
+        Object.values(adsMarketplace).forEach(ads => {
+            const currentAds = [];
+            if (!ads)
+                return;
+            ads.forEach(currentAd => {
+                if (!('skuId' in currentAd))
+                    return;
+                const currentInventories = inventory.filter(inventoryItem => inventoryItem.skuId === currentAd.skuId);
+                const currentImages = images.filter(image => image.skuId === currentAd.skuId);
+                const isUnlimited = false;
+                let total = 0;
+                currentInventories.forEach(inventoryItem => {
+                    total += inventoryItem.availableQuantity;
+                });
+                const canGetInRotation = total > 0;
+                const instance = new Ad_1.Ad(Object.assign(Object.assign({}, currentAd), { canGetInRotation, inventory: {
+                        total,
+                        isUnlimited,
+                        hasInventory: total > 0,
+                        inventories: currentInventories
+                    }, images: currentImages }));
+                instance.scoring
+                    .add(instance.context.inventory.total * (instance.context.canGetInRotation ? 1 : 0.0));
+                instance.scoring.calculate();
+                currentAds.push(instance);
+            });
+            currentAds.sort((a, b) => b.score - a.score);
+            currentAds.forEach((ad, index) => {
+                rotaionInfo.push({
+                    id: ad.context.id,
+                    inRotation: index < ROTATION_ADS,
+                    canGetInRotation: ad.context.canGetInRotation || false,
+                    score: ad.score || 0
+                });
+            });
+        });
+        yield Promise.allSettled(rotaionInfo.map((rotation) => __awaiter(this, void 0, void 0, function* () { return yield (0, server_1.connection)('ads_rotation').insert(rotation); })));
+    });
 }
-exports.isSettingType = isSettingType;
-exports.SETTINGS_FLAGS = {
-    viewWeight: 1,
-    countViews: true,
-    exponentialBackoff: true,
-};
-class Algo {
-    constructor() {
-        Algo.marketplaces = new Map();
-    }
-    static getMarketPlace(id) {
-        return this.marketplaces.get(id);
-    }
-    static reset() {
-        return Promise.all([...Algo.marketplaces].map(([_, marketplace]) => {
-            return marketplace.reset();
-        }));
-    }
-    static setup() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const marketPlaceNames = [1];
-            yield Promise.all(marketPlaceNames.map((marketplaceId) => {
-                const market = new marketplace_1.Marketplace(marketplaceId);
-                Algo.marketplaces.set(marketplaceId, market);
-                return market.setup();
-            }));
-        });
-    }
-    static start() {
-        this.marketplaces.forEach((marketplace) => {
-            marketplace.start();
-        });
-    }
-    static refresh() {
-        Algo.marketplaces.forEach((market) => {
-            market.refresh();
-        });
-    }
-    static calculateScores() {
-        Algo.marketplaces.forEach((market) => {
-            market.calculateScores();
-        });
-    }
-}
-exports.Algo = Algo;
-Algo.marketplaces = new Map();
+exports.run = run;

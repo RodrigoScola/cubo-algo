@@ -12,14 +12,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.server = exports.connection = void 0;
+exports.connection = void 0;
+const cluster_1 = __importDefault(require("cluster"));
+const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const knex_1 = require("knex");
-const Algo_1 = require("./Algo");
+const os_1 = __importDefault(require("os"));
 const ErrorHandler_1 = require("./ErrorHandler");
-const cors_1 = __importDefault(require("cors"));
+const algo_1 = require("./algo");
 const constants_1 = require("./constants");
-const routes_1 = require("./routes/routes");
+require("./process");
+const router_1 = require("./routes/router");
+const totalCPUs = os_1.default.availableParallelism();
+Error.stackTraceLimit = Infinity;
 const config = {
     client: "mysql2",
     connection: process.env.DATABASE_URL || "",
@@ -29,29 +34,52 @@ const config = {
     },
 };
 exports.connection = (0, knex_1.knex)(config);
-exports.server = (0, express_1.default)();
-exports.server.use((0, cors_1.default)({
-    origin: "*",
-}));
-exports.server.use(express_1.default.json());
-exports.server.use(express_1.default.urlencoded({ extended: true }));
-exports.server.set("view engine", "ejs");
-exports.server.set("views", __dirname + "/views");
-exports.server.use("/", routes_1.appRouter);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const EFunction = (err, __, res, _next) => {
-    ErrorHandler_1.ErrorHandler.handle(err, res);
-};
-exports.server.use(EFunction);
-const REFRESH_INTERVAL = constants_1.__DEV__ ? 1000 * 10 : 1000 * 60 * 30;
-setInterval(() => {
-    console.log("refreshing");
-    Algo_1.Algo.refresh();
-}, REFRESH_INTERVAL);
-exports.server.listen(process.env.PORT, () => __awaiter(void 0, void 0, void 0, function* () {
-    // await Promise.all([connection("ads").where("id", ">", 0).del()]);
-    console.clear();
-    yield Algo_1.Algo.setup();
-    Algo_1.Algo.start();
-    console.log(`SERVER WORKING ON PORT ${process.env.PORT}`);
-}));
+function createTables() {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield exports.connection.raw(`
+    create table if not exists ads_rotation(
+      id int primary key,
+      inRotation boolean,
+      canGetInRotation boolean,
+      score int
+    )
+  `);
+    });
+}
+if (cluster_1.default.isPrimary && !constants_1.__DEV__) {
+    console.log(`Number of CPUs is ${totalCPUs}`);
+    console.log(`Primary ${process.pid} is running`);
+    // Fork workers.
+    for (let i = 0; i < totalCPUs; i++) {
+        cluster_1.default.fork();
+    }
+    cluster_1.default.on("exit", (worker) => {
+        console.log(`worker ${worker.process.pid} died`);
+        console.log("Let's fork another worker!");
+        cluster_1.default.fork();
+    });
+}
+else {
+    const app = (0, express_1.default)();
+    app.use((0, cors_1.default)({ origin: "*" }));
+    app.use(express_1.default.urlencoded({ extended: true }));
+    app.use(express_1.default.json());
+    app.use(express_1.default.static(__dirname + "/views/public"));
+    app.use("/", router_1.appRouter);
+    app.set("view engine", "ejs");
+    app.set("views", __dirname + "/views");
+    app.get("/", (_, res) => {
+        res.send("hello world");
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const EFunction = (err, __, res, _next) => {
+        ErrorHandler_1.ErrorHandler.handle(err, res);
+    };
+    app.use(EFunction);
+    app.listen(constants_1.PORT, () => __awaiter(void 0, void 0, void 0, function* () {
+        console.clear();
+        yield createTables();
+        (0, algo_1.run)();
+        console.log(`Server is running in http://localhost:${constants_1.PORT}`);
+    }));
+}
