@@ -124,7 +124,6 @@ select *, products.id as productId, ads.id as id from ads inner join ads_rotatio
         });
     }
     const allAds = [];
-    console.log(prices, 'prices');
     ads.forEach(ad => {
         const image = images.filter(image => image.skuId === ad.skuId);
         const currentPrices = prices.filter(image => image.skuId === ad.skuId);

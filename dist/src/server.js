@@ -83,7 +83,12 @@ else {
         console.log(`Server is running in http://localhost:${constants_1.PORT}`);
     }));
 }
-const TIME_INTERVAL = constants_1.__DEV__ ? 10000 : 300000;
+var TIME_INTERVALS;
+(function (TIME_INTERVALS) {
+    TIME_INTERVALS[TIME_INTERVALS["SECOND"] = 1000] = "SECOND";
+    TIME_INTERVALS[TIME_INTERVALS["MINUTE"] = 60000] = "MINUTE";
+})(TIME_INTERVALS || (TIME_INTERVALS = {}));
+const TIME_INTERVAL = constants_1.__DEV__ ? TIME_INTERVALS.SECOND * 30 : TIME_INTERVALS.MINUTE * 5;
 setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
     (0, router_1.clearMarketplace)();
     yield (0, Algo_1.run)();

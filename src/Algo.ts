@@ -78,10 +78,8 @@ export async function run() {
     const rotaionInfo: AdsRotationInfo[] = [];
     Object.values(adsMarketplace).forEach(ads => {
         const currentAds: Ad[] = [];
-        console.log(ads, 'htis are the ads');
         if (!ads) return;
         ads.forEach(currentAd => {
-            console.log(currentAd, 'this is the current Ad');
             if (!('skuId' in currentAd)) return;
 
             const currentInventories = inventory.filter(inventoryItem => inventoryItem.skuId === currentAd.skuId);
@@ -96,11 +94,6 @@ export async function run() {
                 isUnlimited = isUnlimited || inventoryItem.isUnlimited;
             });
 
-            if (currentAd.skuId === 1) {
-                console.log(currentInventories);
-
-                console.log(total, currentAd.skuId, isUnlimited, 'this is the total');
-            }
             const canGetInRotation = total > 0;
 
             const instance = new Ad({
@@ -125,7 +118,6 @@ export async function run() {
 
             instance.scoring.score *= instance.context.canGetInRotation ? 1 : 0.0;
 
-            console.log(instance, 'this is the instance');
 
 
             currentAds.push(instance);
@@ -145,7 +137,6 @@ export async function run() {
         });
     });
 
-    console.log(rotaionInfo, 'this is the rotation info');
     await Promise.allSettled(
         rotaionInfo.map(async (rotation) =>
             await connection('ads_rotation').insert(rotation)

@@ -70,11 +70,9 @@ function run() {
         const rotaionInfo = [];
         Object.values(adsMarketplace).forEach(ads => {
             const currentAds = [];
-            console.log(ads, 'htis are the ads');
             if (!ads)
                 return;
             ads.forEach(currentAd => {
-                console.log(currentAd, 'this is the current Ad');
                 if (!('skuId' in currentAd))
                     return;
                 const currentInventories = inventory.filter(inventoryItem => inventoryItem.skuId === currentAd.skuId);
@@ -85,10 +83,6 @@ function run() {
                     total += inventoryItem.availableQuantity;
                     isUnlimited = isUnlimited || inventoryItem.isUnlimited;
                 });
-                if (currentAd.skuId === 1) {
-                    console.log(currentInventories);
-                    console.log(total, currentAd.skuId, isUnlimited, 'this is the total');
-                }
                 const canGetInRotation = total > 0;
                 const instance = new Ad_1.Ad(Object.assign(Object.assign({}, currentAd), { canGetInRotation, inventory: {
                         total,
@@ -100,7 +94,6 @@ function run() {
                     .add(instance.context.ctr * 100);
                 instance.scoring.calculate();
                 instance.scoring.score *= instance.context.canGetInRotation ? 1 : 0.0;
-                console.log(instance, 'this is the instance');
                 currentAds.push(instance);
             });
             currentAds.sort((a, b) => b.score - a.score);
@@ -113,7 +106,6 @@ function run() {
                 });
             });
         });
-        console.log(rotaionInfo, 'this is the rotation info');
         yield Promise.allSettled(rotaionInfo.map((rotation) => __awaiter(this, void 0, void 0, function* () { return yield (0, server_1.connection)('ads_rotation').insert(rotation); })));
     });
 }

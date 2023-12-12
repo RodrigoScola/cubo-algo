@@ -85,7 +85,12 @@ if (cluster.isPrimary && !__DEV__) {
 
 }
 
-const TIME_INTERVAL = __DEV__ ? 10000 : 300000;
+enum TIME_INTERVALS {
+  SECOND = 1000,
+  MINUTE = 60 * SECOND,
+}
+
+const TIME_INTERVAL = __DEV__ ? TIME_INTERVALS.SECOND * 30 : TIME_INTERVALS.MINUTE * 5;
 
 setInterval(async () => {
   clearMarketplace();
