@@ -27,7 +27,7 @@ export async function run() {
         platforms.map(async (platform) => {
             console.log(`fetching ads for platform ${platform}`);
             return await connection.raw(`
-      select * , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id where ads.marketplaceId = ${platform} 
+      select * , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id 
         `) as AdContext[][];
         }
         )
@@ -39,6 +39,7 @@ export async function run() {
     } as Record<MARKETPLACES, AdContext[]>;
 
     promiseMatrix.forEach(promise => {
+
         if (promise.status === 'rejected' || !Array.isArray(promise.value)) return;
         promise.value.forEach(ads => {
             if (!Array.isArray(ads)) return;
@@ -56,6 +57,7 @@ export async function run() {
 
         });
     });
+    console.log(adsMarketplace, 'ads');
     const [inventoryPromise, imagePromise] = await Promise.allSettled([
         connection('sku_inventory').select('*').whereIn('skuId', skuIds),
         connection('sku_file').select('*').whereIn('skuId', skuIds),
@@ -126,7 +128,7 @@ export async function run() {
 
         currentAds.sort((a, b) => b.score - a.score);
 
-
+        console.log(currentAds, 'this is the current ads');
         currentAds.forEach((ad, index) => {
             rotaionInfo.push({
                 id: ad.context.id,
@@ -136,9 +138,17 @@ export async function run() {
             });
         });
     });
+    try {
+        console.log('running the rotation');
+        await Promise.allSettled(
+            rotaionInfo.map(async (rotation) => {
 
-    await Promise.allSettled(
-        rotaionInfo.map(async (rotation) =>
-            await connection('ads_rotation').insert(rotation)
-        ));
+                console.log(rotation);
+                return await connection('ads_rotation').insert(rotation);
+            }
+            ));
+    } catch (err) {
+        console.log(err);
+
+    }
 }
