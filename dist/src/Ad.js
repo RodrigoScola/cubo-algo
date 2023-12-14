@@ -1,18 +1,16 @@
-
-import { Scoring } from './lib/scoring';
-import { AdInstanceInfo } from './types/types';
-export class Ad {
-    readonly context: AdInstanceInfo;
-    readonly scoring: Scoring;
-
-    constructor(info: AdInstanceInfo) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Ad = void 0;
+const scoring_1 = require("./lib/scoring");
+class Ad {
+    constructor(info) {
         this.context = info;
-        this.scoring = new Scoring();
+        this.scoring = new scoring_1.Scoring();
     }
     get score() {
         return this.scoring.score;
     }
-    set score(num: number) {
+    set score(num) {
         this.scoring.add(num);
     }
     get info() {
@@ -31,3 +29,4 @@ export class Ad {
         };
     }
 }
+exports.Ad = Ad;

@@ -57,7 +57,6 @@ export async function run() {
 
         });
     });
-    console.log(adsMarketplace, 'ads');
     const [inventoryPromise, imagePromise] = await Promise.allSettled([
         connection('sku_inventory').select('*').whereIn('skuId', skuIds),
         connection('sku_file').select('*').whereIn('skuId', skuIds),
@@ -128,11 +127,10 @@ export async function run() {
 
         currentAds.sort((a, b) => b.score - a.score);
 
-        console.log(currentAds, 'this is the current ads');
         currentAds.forEach((ad, index) => {
             rotaionInfo.push({
                 id: ad.context.id,
-                inRotation: index < ROTATION_ADS,
+                inRotation: index < ROTATION_ADS && ad.score > 0,
                 canGetInRotation: ad.context.canGetInRotation || false,
                 score: ad.score || 0
             });
@@ -143,7 +141,6 @@ export async function run() {
         await Promise.allSettled(
             rotaionInfo.map(async (rotation) => {
 
-                console.log(rotation);
                 return await connection('ads_rotation').insert(rotation);
             }
             ));

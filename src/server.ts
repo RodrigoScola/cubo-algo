@@ -8,7 +8,7 @@ import { run } from "./Algo";
 import { ErrorHandler } from "./ErrorHandler";
 import { PORT, __DEV__ } from "./constants";
 import "./process";
-import { appRouter, clearMarketplace } from "./routes/router";
+import { appRouter } from "./routes/router";
 
 const totalCPUs = os.availableParallelism();
 Error.stackTraceLimit = Infinity;
@@ -93,7 +93,7 @@ enum TIME_INTERVALS {
 const TIME_INTERVAL = __DEV__ ? TIME_INTERVALS.SECOND * 30 : TIME_INTERVALS.MINUTE * 5;
 
 setInterval(async () => {
-  clearMarketplace();
+  // clearMarketplace();
   await run();
   console.log('running');
 }, TIME_INTERVAL);
