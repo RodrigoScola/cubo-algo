@@ -1,4 +1,4 @@
-import { AdInfo, AdInteractionInfo, AdsRotationInfo, MarketplaceInfo, ProductInfo, SkuFileInfo, SkuInfo, SkuInventoryInfo } from "./src/types/types";
+import { AdInfo, AdInteractionInfo, AdsRotationInfo, CampaignInfo, MarketplaceInfo, ProductInfo, SkuFileInfo, SkuInfo, SkuInventoryInfo } from "./src/types/types";
 
 declare module "knex/types/tables" {
   interface Tables {
@@ -7,8 +7,9 @@ declare module "knex/types/tables" {
     sku_inventory: SkuInventoryInfo;
     ads: AdInfo;
     sku_file: SkuFileInfo;
-    interaction: AdInteractionInfo;
+    interactions: AdInteractionInfo;
     marketplace: MarketplaceInfo;
     ads_rotation: AdsRotationInfo;
+    campaigns: CampaignInfo;
   }
 }

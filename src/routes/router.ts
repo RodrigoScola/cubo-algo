@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { Ad } from "../Ad";
+import { run } from "../Algo";
 import { BadRequestError } from "../ErrorHandler";
 import { __DEV__ } from "../constants";
 import { connection } from "../server";
@@ -16,9 +17,6 @@ appRouter.use('/', (req, _, next) => {
     if (!('marketplaceid' in req.headers)) {
         req.headers.marketplaceid = String(CURRENTMARKETPLACEID);
     }
-
-
-
 
     if (__DEV__) {
         req.headers.marketplaceid = '2';
@@ -39,6 +37,54 @@ appRouter.use('/', (req, _, next) => {
 });
 
 
+appRouter.use('/ads/run', async (_, res, __) => {
+    console.log("Running algo");
+
+
+
+    clearMarketplace();
+
+
+    try {
+
+        await run();
+        res.json({ success: true });
+    }
+    catch (err) {
+        res.json({ success: false });
+    }
+
+});
+appRouter.use('/ads/reset', async (_, res, __) => {
+    console.log("resetting algo");
+
+    try {
+        await Promise.all([
+            connection('ads').where('id', '>', 0).del(),
+            connection('ads_rotation').where('id', '>', 0).del(),
+            connection('interactions').where('id', '>', 0).del(),
+            connection('campaigns').where('id', '>', 0).del()
+        ]);
+        clearMarketplace();
+        res.json({
+            success: true
+        });
+    } catch (err) {
+        console.log(err);
+        res.json({
+            success: false
+        });
+    }
+});
+
+appRouter.use('/ads/populate', async (_, res, __) => {
+
+
+
+    res.json({ success: true });
+
+});
+
 const MarketplaceAds: Map<MARKETPLACES, Ad[]> = new Map();
 
 
@@ -48,13 +94,19 @@ export function clearMarketplace() {
 }
 
 appRouter.get("/testing/ads", async (req, res) => {
+    console.log("getting ads");
+    console.log(req.headers);
+
     if (MarketplaceAds.has(req.marketplace)) {
         return res.json(MarketplaceAds.get(req.marketplace));
     }
     const [ads] = await connection.raw(`
-select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ads.id = interactions.id inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id order by ads_rotation.score desc
+select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ads.id = interactions.id inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id where ads.marketplaceId = ${Number(req.headers.marketplaceid)}  order by ads_rotation.score desc
     `) as [AdContext[]];
     if (!ads || !Array.isArray(ads)) return res.json([]);
+
+    console.log(ads, 'these are the ads');
+
 
     const skuIds: number[] = [];
     ads.forEach((ad: AdContext) => {

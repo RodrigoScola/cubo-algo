@@ -253,5 +253,20 @@ export type AdInstanceInfo = AdContext & {
     };
     prices?: PriceInfo[];
     images: SkuFileInfo[];
-
 };
+
+
+
+export const CampaignInfoObject = {
+    name: "",
+    startAt: new Date().toDateString(),
+    endAt: new Date().toDateString(),
+    status: 0 as ItemStatus,
+    marketplaceId: MARKETPLACES.TESTING,
+    cost: 0,
+    campaign_type: 1,
+    placement: 1,
+    id: 0
+};
+
+export type CampaignInfo = typeof CampaignInfoObject;

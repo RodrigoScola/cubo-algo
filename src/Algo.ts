@@ -7,7 +7,7 @@ import { AdContext, AdsRotationInfo, MARKETPLACES, SkuFileInfo, SkuInventoryInfo
 
 
 
-const ROTATION_ADS = 3;
+const ROTATION_ADS = 5;
 
 
 export async function run() {
@@ -127,10 +127,29 @@ export async function run() {
 
         currentAds.sort((a, b) => b.score - a.score);
 
-        currentAds.forEach((ad, index) => {
+        let adsInRotationCount = 0;
+
+        currentAds.forEach((ad,) => {
+
+            const canGetInRotation = ad.context.canGetInRotation && adsInRotationCount < ROTATION_ADS;
+
+
+            if (canGetInRotation) {
+                adsInRotationCount++;
+            }
+
+
+
+            console.log(canGetInRotation);
+
+
+
+
+
+
             rotaionInfo.push({
                 id: ad.context.id,
-                inRotation: index < ROTATION_ADS && ad.score > 0,
+                inRotation: canGetInRotation,
                 canGetInRotation: ad.context.canGetInRotation || false,
                 score: ad.score || 0
             });
