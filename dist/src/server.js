@@ -73,6 +73,7 @@ else {
     });
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const EFunction = (err, __, res, _next) => {
+        console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
         ErrorHandler_1.ErrorHandler.handle(err, res);
     };
     app.use(EFunction);
