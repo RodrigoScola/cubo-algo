@@ -76,12 +76,11 @@ function clearMarketplace() {
 }
 exports.clearMarketplace = clearMarketplace;
 exports.appRouter.get("/testing/ads", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(`getting ads for marketplace ${req.marketplace}`);
     if (MarketplaceAds.has(req.marketplace)) {
         return res.json(MarketplaceAds.get(req.marketplace));
     }
     const [ads] = yield server_1.connection.raw(`
-select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ads.id = interactions.id inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id where ads.marketplaceId = ${Number(req.headers.marketplaceid)}  order by ads_rotation.score desc
+select * from ads inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id inner join interactions on ads.id = interactions.id where ads.marketplaceId = ${req.marketplace} 
     `);
     if (!ads || !Array.isArray(ads))
         return res.json([]);
@@ -140,7 +139,7 @@ exports.appRouter.get("/ads", (req, res) => __awaiter(void 0, void 0, void 0, fu
         return res.json((_a = MarketplaceAds.get(req.marketplace)) === null || _a === void 0 ? void 0 : _a.map(ad => ad.info));
     }
     const [ads] = yield server_1.connection.raw(`
-select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ads.id = interactions.id inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id order by ads_rotation.score desc
+select * from ads inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id inner join interactions on ads.id = interactions.id where ads.marketplaceId = ${req.marketplace} and ads_rotation.inRotation = 1
     `);
     if (!ads || !Array.isArray(ads))
         return res.json([]);

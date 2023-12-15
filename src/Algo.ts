@@ -17,7 +17,7 @@ export async function run() {
     //HACK: cant think of anything else so this will do for now
     //HACK: platforms are the things that the websites that we are going to put ads on  
     const platforms = [
-        MARKETPLACES.TESTING
+        MARKETPLACES.TESTING, MARKETPLACES.WECODE
     ];
 
     await connection('ads_rotation').where('id', '>', 0).del();
@@ -27,7 +27,7 @@ export async function run() {
         platforms.map(async (platform) => {
             console.log(`fetching ads for platform ${platform}`);
             const query = connection.raw(`
-      select  * , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id  where ads.marketplaceId = ${platform} order by ads.id desc
+      select  *, ads.marketplaceId as marketplaceId , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id  where ads.marketplaceId = ${platform} order by ads.id desc
         `);
 
             console.log(query.toQuery());
@@ -37,14 +37,13 @@ export async function run() {
         }
         )
     );
-
     const skuIds: number[] = [];
     const adsMarketplace: Record<MARKETPLACES, AdContext[]> = {
-
+        "1": [],
+        "2": []
     } as Record<MARKETPLACES, AdContext[]>;
 
     promiseMatrix.forEach(promise => {
-
         if (promise.status === 'rejected' || !Array.isArray(promise.value)) return;
         promise.value.forEach(ads => {
             if (!Array.isArray(ads)) return;
@@ -82,7 +81,11 @@ export async function run() {
         });
     }
     const rotaionInfo: AdsRotationInfo[] = [];
+
+
+
     Object.values(adsMarketplace).forEach(async (ads) => {
+        console.log('this');
         let currentAds: Ad[] = [];
         if (!ads) return;
         ads.forEach(currentAd => {
@@ -147,12 +150,6 @@ export async function run() {
 
 
 
-            console.log({
-                id: ad.context.id,
-                score: ad.score,
-                can: ad.context.canGetInRotation,
-                should: canGetInRotation
-            });
 
 
 
@@ -173,6 +170,7 @@ export async function run() {
                 score: ad.score || 0
             });
         });
+        console.log('rotationinfo', rotaionInfo.filter(a => a.inRotation == true).length);
 
         try {
             console.log('running the rotation');

@@ -94,16 +94,14 @@ export function clearMarketplace() {
 }
 
 appRouter.get("/testing/ads", async (req, res) => {
-    console.log(`getting ads for marketplace ${req.marketplace}`);
 
     if (MarketplaceAds.has(req.marketplace)) {
         return res.json(MarketplaceAds.get(req.marketplace));
     }
     const [ads] = await connection.raw(`
-select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ads.id = interactions.id inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id where ads.marketplaceId = ${Number(req.headers.marketplaceid)}  order by ads_rotation.score desc
+select * from ads inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id inner join interactions on ads.id = interactions.id where ads.marketplaceId = ${req.marketplace} 
     `) as [AdContext[]];
     if (!ads || !Array.isArray(ads)) return res.json([]);
-
 
 
     const skuIds: number[] = [];
@@ -111,7 +109,6 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
         if (!('skuId' in ad) && skuIds.indexOf(ad['skuId']) === -1) return;
         skuIds.push(ad.skuId);
     });
-
 
     const images: SkuFileInfo[] = [];
     const inventories: SkuInventoryInfo[] = [];
@@ -178,7 +175,7 @@ appRouter.get("/ads", async (req, res) => {
         return res.json(MarketplaceAds.get(req.marketplace)?.map(ad => ad.info));
     }
     const [ads] = await connection.raw(`
-select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ads.id = interactions.id inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on ads.productId = products.id order by ads_rotation.score desc
+select * from ads inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id inner join interactions on ads.id = interactions.id where ads.marketplaceId = ${req.marketplace} and ads_rotation.inRotation = 1
     `) as [AdContext[]];
     if (!ads || !Array.isArray(ads)) return res.json([]);
 

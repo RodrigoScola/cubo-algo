@@ -19,19 +19,22 @@ function run() {
         //HACK: cant think of anything else so this will do for now
         //HACK: platforms are the things that the websites that we are going to put ads on  
         const platforms = [
-            types_1.MARKETPLACES.TESTING
+            types_1.MARKETPLACES.TESTING, types_1.MARKETPLACES.WECODE
         ];
         yield (0, server_1.connection)('ads_rotation').where('id', '>', 0).del();
         const promiseMatrix = yield Promise.allSettled(platforms.map((platform) => __awaiter(this, void 0, void 0, function* () {
             console.log(`fetching ads for platform ${platform}`);
             const query = server_1.connection.raw(`
-      select  * , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id  where ads.marketplaceId = ${platform} order by ads.id desc
+      select  *, ads.marketplaceId as marketplaceId , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id  where ads.marketplaceId = ${platform} order by ads.id desc
         `);
             console.log(query.toQuery());
             return yield query;
         })));
         const skuIds = [];
-        const adsMarketplace = {};
+        const adsMarketplace = {
+            "1": [],
+            "2": []
+        };
         promiseMatrix.forEach(promise => {
             if (promise.status === 'rejected' || !Array.isArray(promise.value))
                 return;
@@ -71,6 +74,7 @@ function run() {
         }
         const rotaionInfo = [];
         Object.values(adsMarketplace).forEach((ads) => __awaiter(this, void 0, void 0, function* () {
+            console.log('this');
             let currentAds = [];
             if (!ads)
                 return;
@@ -103,12 +107,6 @@ function run() {
             const nads = [];
             currentAds.forEach((ad) => {
                 const canGetInRotation = ad.context.canGetInRotation && ad.score > 0 && allIndex < ROTATION_ADS;
-                console.log({
-                    id: ad.context.id,
-                    score: ad.score,
-                    can: ad.context.canGetInRotation,
-                    should: canGetInRotation
-                });
                 if (canGetInRotation) {
                     nads.push(ad);
                     allIndex++;
@@ -120,6 +118,7 @@ function run() {
                     score: ad.score || 0
                 });
             });
+            console.log('rotationinfo', rotaionInfo.filter(a => a.inRotation == true).length);
             try {
                 console.log('running the rotation');
                 yield Promise.allSettled(rotaionInfo.map((rotation) => __awaiter(this, void 0, void 0, function* () {
