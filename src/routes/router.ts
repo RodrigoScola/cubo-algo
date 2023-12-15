@@ -10,15 +10,20 @@ export const appRouter = Router();
 
 
 
-const CURRENTMARKETPLACEID = __DEV__ ? 2 : 1;
+const CURRENT_MAKRETPLACE_ID = __DEV__ ? 2 : 1;
 
 
 appRouter.use('/', (req, _, next) => {
+
+    console.log("request incoming", req.headers);
+
+
+
     if (!('marketplaceid' in req.headers)) {
-        req.headers.marketplaceid = String(CURRENTMARKETPLACEID);
+        req.headers.marketplaceid = String(CURRENT_MAKRETPLACE_ID);
     }
 
-    if (__DEV__) {
+    if (__DEV__ && !('marketplaceid' in req.headers)) {
         req.headers.marketplaceid = '2';
     }
 

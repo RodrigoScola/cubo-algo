@@ -1,13 +1,8 @@
 import { Ad } from './Ad';
+import { ROTATION_ADS } from './constants';
 import { connection } from "./server";
 import { AdContext, AdsRotationInfo, MARKETPLACES, SkuFileInfo, SkuInventoryInfo } from "./types/types";
 
-
-
-
-
-
-const ROTATION_ADS = 3;
 
 
 export async function run() {
@@ -19,24 +14,15 @@ export async function run() {
     const platforms = [
         MARKETPLACES.TESTING, MARKETPLACES.WECODE
     ];
-
     await connection('ads_rotation').where('id', '>', 0).del();
-
 
     const promiseMatrix = await Promise.allSettled(
         platforms.map(async (platform) => {
-            console.log(`fetching ads for platform ${platform}`);
             const query = connection.raw(`
       select  *, ads.marketplaceId as marketplaceId , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id  where ads.marketplaceId = ${platform} order by ads.id desc
         `);
-
-            console.log(query.toQuery());
-
-
             return await query as AdContext[][];
-        }
-        )
-    );
+        }));
     const skuIds: number[] = [];
     const adsMarketplace: Record<MARKETPLACES, AdContext[]> = {
         "1": [],

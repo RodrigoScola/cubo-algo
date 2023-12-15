@@ -23,11 +23,9 @@ function run() {
         ];
         yield (0, server_1.connection)('ads_rotation').where('id', '>', 0).del();
         const promiseMatrix = yield Promise.allSettled(platforms.map((platform) => __awaiter(this, void 0, void 0, function* () {
-            console.log(`fetching ads for platform ${platform}`);
             const query = server_1.connection.raw(`
       select  *, ads.marketplaceId as marketplaceId , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id  where ads.marketplaceId = ${platform} order by ads.id desc
         `);
-            console.log(query.toQuery());
             return yield query;
         })));
         const skuIds = [];
