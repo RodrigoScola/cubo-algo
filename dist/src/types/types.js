@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AdsRotationObject = exports.AdContextObject = exports.PriceInfoObject = exports.AdInteractionInfoObject = exports.SkuFileObject = exports.AdInfoObject = exports.SkuInventoryInfoObject = exports.MarketplaceObj = exports.SkuInfoObject = exports.ProductInfoObject = exports.ItemStatus = exports.MARKETPLACES = exports.CMS_PLATFORMS = void 0;
+exports.CampaignInfoObject = exports.AdsRotationObject = exports.AdContextObject = exports.PriceInfoObject = exports.AdInteractionInfoObject = exports.SkuFileObject = exports.AdInfoObject = exports.SkuInventoryInfoObject = exports.MarketplaceObj = exports.SkuInfoObject = exports.ProductInfoObject = exports.ItemStatus = exports.MARKETPLACES = exports.CMS_PLATFORMS = void 0;
 var CMS_PLATFORMS;
 (function (CMS_PLATFORMS) {
     CMS_PLATFORMS[CMS_PLATFORMS["VTEX"] = 1] = "VTEX";
@@ -199,4 +199,15 @@ exports.AdsRotationObject = {
     inRotation: true,
     canGetInRotation: true,
     score: 0,
+};
+exports.CampaignInfoObject = {
+    name: "",
+    startAt: new Date().toDateString(),
+    endAt: new Date().toDateString(),
+    status: 0,
+    marketplaceId: MARKETPLACES.TESTING,
+    cost: 0,
+    campaign_type: 1,
+    placement: 1,
+    id: 0
 };

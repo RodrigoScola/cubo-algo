@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "dev": "ts-node-dev  --transpile-only --ignore-watch node_modules src/server.ts ",
-    "build": "tsc",
+    "build": "bash ./scripts/build.sh",
     "start": "node ./dist/src/server.js"
   },
   "keywords": [],

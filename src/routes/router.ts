@@ -94,8 +94,7 @@ export function clearMarketplace() {
 }
 
 appRouter.get("/testing/ads", async (req, res) => {
-    console.log("getting ads");
-    console.log(req.headers);
+    console.log(`getting ads for marketplace ${req.marketplace}`);
 
     if (MarketplaceAds.has(req.marketplace)) {
         return res.json(MarketplaceAds.get(req.marketplace));
@@ -105,7 +104,6 @@ select *,  sku.id as skuId, ads.id as id  from ads inner join interactions on ad
     `) as [AdContext[]];
     if (!ads || !Array.isArray(ads)) return res.json([]);
 
-    console.log(ads, 'these are the ads');
 
 
     const skuIds: number[] = [];

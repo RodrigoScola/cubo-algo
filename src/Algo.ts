@@ -7,7 +7,7 @@ import { AdContext, AdsRotationInfo, MARKETPLACES, SkuFileInfo, SkuInventoryInfo
 
 
 
-const ROTATION_ADS = 5;
+const ROTATION_ADS = 3;
 
 
 export async function run() {
@@ -17,7 +17,7 @@ export async function run() {
     //HACK: cant think of anything else so this will do for now
     //HACK: platforms are the things that the websites that we are going to put ads on  
     const platforms = [
-        MARKETPLACES.TESTING, MARKETPLACES.WECODE
+        MARKETPLACES.TESTING
     ];
 
     await connection('ads_rotation').where('id', '>', 0).del();
@@ -26,9 +26,14 @@ export async function run() {
     const promiseMatrix = await Promise.allSettled(
         platforms.map(async (platform) => {
             console.log(`fetching ads for platform ${platform}`);
-            return await connection.raw(`
-      select * , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id 
-        `) as AdContext[][];
+            const query = connection.raw(`
+      select  * , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id  where ads.marketplaceId = ${platform} order by ads.id desc
+        `);
+
+            console.log(query.toQuery());
+
+
+            return await query as AdContext[][];
         }
         )
     );
@@ -77,8 +82,8 @@ export async function run() {
         });
     }
     const rotaionInfo: AdsRotationInfo[] = [];
-    Object.values(adsMarketplace).forEach(ads => {
-        const currentAds: Ad[] = [];
+    Object.values(adsMarketplace).forEach(async (ads) => {
+        let currentAds: Ad[] = [];
         if (!ads) return;
         ads.forEach(currentAd => {
             if (!('skuId' in currentAd)) return;
@@ -125,46 +130,61 @@ export async function run() {
 
         });
 
-        currentAds.sort((a, b) => b.score - a.score);
 
-        let adsInRotationCount = 0;
+        currentAds = currentAds.sort((a, b) => b.score - a.score);
+
+        let allIndex = 0;
+
+
+        const nads = [];
+
 
         currentAds.forEach((ad,) => {
 
-            const canGetInRotation = ad.context.canGetInRotation && adsInRotationCount < ROTATION_ADS;
+
+
+            const canGetInRotation = ad.context.canGetInRotation && ad.score > 0 && allIndex < ROTATION_ADS;
+
+
+
+            console.log({
+                id: ad.context.id,
+                score: ad.score,
+                can: ad.context.canGetInRotation,
+                should: canGetInRotation
+            });
+
 
 
             if (canGetInRotation) {
-                adsInRotationCount++;
+                nads.push(ad);
+                allIndex++;
             }
-
-
-
-            console.log(canGetInRotation);
-
-
-
-
 
 
             rotaionInfo.push({
                 id: ad.context.id,
-                inRotation: canGetInRotation,
+                inRotation:
+                    canGetInRotation
+
+
+                ,
                 canGetInRotation: ad.context.canGetInRotation || false,
                 score: ad.score || 0
             });
         });
+
+        try {
+            console.log('running the rotation');
+            await Promise.allSettled(
+                rotaionInfo.map(async (rotation) => {
+                    return await connection('ads_rotation').insert(rotation);
+                }
+                ));
+        } catch (err) {
+            console.log(err);
+
+        }
     });
-    try {
-        console.log('running the rotation');
-        await Promise.allSettled(
-            rotaionInfo.map(async (rotation) => {
 
-                return await connection('ads_rotation').insert(rotation);
-            }
-            ));
-    } catch (err) {
-        console.log(err);
-
-    }
 }
