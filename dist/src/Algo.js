@@ -11,9 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.run = void 0;
 const Ad_1 = require("./Ad");
+const constants_1 = require("./constants");
 const server_1 = require("./server");
 const types_1 = require("./types/types");
-const ROTATION_ADS = 3;
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         //HACK: cant think of anything else so this will do for now
@@ -104,7 +104,7 @@ function run() {
             let allIndex = 0;
             const nads = [];
             currentAds.forEach((ad) => {
-                const canGetInRotation = ad.context.canGetInRotation && ad.score > 0 && allIndex < ROTATION_ADS;
+                const canGetInRotation = ad.context.canGetInRotation && ad.score > 0 && allIndex < constants_1.ROTATION_ADS;
                 if (canGetInRotation) {
                     nads.push(ad);
                     allIndex++;

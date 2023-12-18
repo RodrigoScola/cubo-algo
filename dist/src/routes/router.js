@@ -17,12 +17,13 @@ const ErrorHandler_1 = require("../ErrorHandler");
 const constants_1 = require("../constants");
 const server_1 = require("../server");
 exports.appRouter = (0, express_1.Router)();
-const CURRENTMARKETPLACEID = constants_1.__DEV__ ? 2 : 1;
+const CURRENT_MAKRETPLACE_ID = constants_1.__DEV__ ? 2 : 1;
 exports.appRouter.use('/', (req, _, next) => {
+    console.log("request incoming", req.headers);
     if (!('marketplaceid' in req.headers)) {
-        req.headers.marketplaceid = String(CURRENTMARKETPLACEID);
+        req.headers.marketplaceid = String(CURRENT_MAKRETPLACE_ID);
     }
-    if (constants_1.__DEV__) {
+    if (constants_1.__DEV__ && !('marketplaceid' in req.headers)) {
         req.headers.marketplaceid = '2';
     }
     if (!('marketplaceid' in req.headers)) {
