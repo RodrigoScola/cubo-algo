@@ -92,7 +92,7 @@ enum TIME_INTERVALS {
   MINUTE = 60 * SECOND,
 }
 
-const TIME_INTERVAL = __DEV__ ? TIME_INTERVALS.SECOND * 30 : TIME_INTERVALS.MINUTE * 5;
+const TIME_INTERVAL = __DEV__ ? TIME_INTERVALS.SECOND * 30 : TIME_INTERVALS.SECOND * 30;
 
 setInterval(async () => {
   // clearMarketplace();
