@@ -23,6 +23,7 @@ const config: Knex.Config = {
 export const connection = Kcon(config);
 
 async function createTables() {
+
   await connection.raw(`
     create table if not exists ads_rotation(
       id int primary key,
@@ -69,8 +70,6 @@ if (cluster.isPrimary && !__DEV__) {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const EFunction: ErrorRequestHandler = (err: Error, __: Request, res: Response, _next) => {
-
-    console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     ErrorHandler.handle(err, res);
   };
 

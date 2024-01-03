@@ -5,6 +5,11 @@ export const __DEV__ = process.env.NODE_ENV === "development";
 
 export const DATABASE_URL = process.env.DATABASE_URL || "";
 
-export const SERVER_URL = __DEV__ ? "http://localhost:5000" : "https://cubo-backend.onrender.com";
+export const SERVER_URL = __DEV__ ? "http://localhost:3000" : "https://cubo-backend.onrender.com";
 
 export const ROTATION_ADS = 3;
+
+
+
+
+export const CURRENT_ACCESS_TOKEN = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImVQcjdZa1lLc3dnZkF4c2NjLUR0OCJ9.eyJpc3MiOiJodHRwczovL2Rldi0xcmxvOG8zeGY3b2JxN3F6LnVzLmF1dGgwLmNvbS8iLCJzdWIiOiJhdXRoMHw2NTgzM2IzODg5NWQwOWE3MGJhMTc3NTMiLCJhdWQiOlsiaHR0cDovL2xvY2FsaG9zdDozMDAwIiwiaHR0cHM6Ly9kZXYtMXJsbzhvM3hmN29icTdxei51cy5hdXRoMC5jb20vdXNlcmluZm8iXSwiaWF0IjoxNzA0Mjg1NTUxLCJleHAiOjE3MDQzNzE5NTEsImF6cCI6Ikh5NEtwZXgwdTZLa1czRXFMMFBzWURtUUtCQTN1M2hZIiwic2NvcGUiOiJvcGVuaWQgcHJvZmlsZSBlbWFpbCIsIm9yZ19pZCI6Im9yZ19OaWNqVWdUU3RIOGlVQVBLIn0.O4MCcmTAkntNEzsRrhnXQXDoaGCMSEEI4GXB4KnP5WtiHivkNwE_vDPLAqQKH1ynOUuuLmMDtYZB2V9epZVdkOKSUVoae5tSiMf9LNGT2evIcFEJj6rt1hS1tP44tBi9G7J_1bVdyTWDo7XpOeeJZf5FlBIzTGGeJzfxXshQ8VHcFy_vGXESyNm8XbZCD7X3wzwJGe4WkrK5UAIH7Qn5vCKdhvR9VBCog3sun-TpMQ0MlA8AW4nlck6AJzoD0fO6yk4z8Wqgx87ToaFsNTG_WPq1lMqX_fcVunPKUYuBdAudbd2TD51oRSagvNRuI1tm9ZCE-RpyxUkijUpK-9QsSg";

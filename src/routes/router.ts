@@ -1,43 +1,35 @@
 import { Router } from "express";
+import { MARKETPLACES, SkuFile, SkuInventoryInfo } from 'wecubedigital';
 import { Ad } from "../Ad";
 import { run } from "../Algo";
 import { BadRequestError } from "../ErrorHandler";
 import { __DEV__ } from "../constants";
 import { connection } from "../server";
-import { AdContext, MARKETPLACES, SkuFileInfo, SkuInventoryInfo } from "../types/types";
+import { AdContext, } from "../types/types";
 
 export const appRouter = Router();
 
 
 
-const CURRENT_MAKRETPLACE_ID = __DEV__ ? 2 : 1;
+
 
 
 appRouter.use('/', (req, _, next) => {
 
-    console.log("request incoming", req.headers);
 
-
-
-    if (!('marketplaceid' in req.headers)) {
-        req.headers.marketplaceid = String(CURRENT_MAKRETPLACE_ID);
-    }
 
     if (__DEV__ && !('marketplaceid' in req.headers)) {
-        req.headers.marketplaceid = '2';
+        req.headers.marketplaceid = MARKETPLACES.WECODE;
     }
 
-    if (!('marketplaceid' in req.headers)) {
+    if (!('marketplaceid' in req.headers) || !req.headers.marketplaceid) {
         throw new BadRequestError("Missing marketplaceId");
     }
-    const marketplaceId = Number(req.headers.marketplaceid);
+
+    req.marketplace = req.headers.marketplaceid as MARKETPLACES;
 
 
-    if (!marketplaceId) {
-        throw new BadRequestError("Invalid MarketplaceId");
-    }
 
-    req.marketplace = marketplaceId;
     next();
 });
 
@@ -99,14 +91,16 @@ export function clearMarketplace() {
 }
 
 appRouter.get("/testing/ads", async (req, res) => {
-
-    if (MarketplaceAds.has(req.marketplace)) {
-        return res.json(MarketplaceAds.get(req.marketplace));
-    }
     const [ads] = await connection.raw(`
-select * from ads inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id inner join interactions on ads.id = interactions.id where ads.marketplaceId = ${req.marketplace} 
+select * from ads 
+inner join ads_rotation on ads.id = ads_rotation.id 
+inner join sku on ads.skuId = sku.id 
+inner join products on sku.productId = products.id 
+inner join interactions on ads.id = interactions.id 
+where ads.marketplaceId = "${req.marketplace}" and ads_rotation.canGetInRotation = 1
     `) as [AdContext[]];
     if (!ads || !Array.isArray(ads)) return res.json([]);
+
 
 
     const skuIds: number[] = [];
@@ -115,7 +109,7 @@ select * from ads inner join ads_rotation on ads.id = ads_rotation.id inner join
         skuIds.push(ad.skuId);
     });
 
-    const images: SkuFileInfo[] = [];
+    const images: SkuFile[] = [];
     const inventories: SkuInventoryInfo[] = [];
     const prices: any[] = [];
     const [inventoriesPromise, imagePromise, pricePromise] = await Promise.allSettled([
@@ -176,11 +170,8 @@ select * from ads inner join ads_rotation on ads.id = ads_rotation.id inner join
 });
 
 appRouter.get("/ads", async (req, res) => {
-    if (MarketplaceAds.has(req.marketplace)) {
-        return res.json(MarketplaceAds.get(req.marketplace)?.map(ad => ad.info));
-    }
     const [ads] = await connection.raw(`
-select * from ads inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id inner join interactions on ads.id = interactions.id where ads.marketplaceId = ${req.marketplace} and ads_rotation.inRotation = 1
+select * from ads inner join ads_rotation on ads.id = ads_rotation.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id inner join interactions on ads.id = interactions.id where ads.marketplaceId = ${req.marketplace} and ads_rotation.inRotation = 1 order by ads.score desc
     `) as [AdContext[]];
     if (!ads || !Array.isArray(ads)) return res.json([]);
 
@@ -191,7 +182,7 @@ select * from ads inner join ads_rotation on ads.id = ads_rotation.id inner join
     });
 
 
-    const images: SkuFileInfo[] = [];
+    const images: SkuFile[] = [];
     const inventories: SkuInventoryInfo[] = [];
     const prices: any[] = [];
     const [inventoriesPromise, imagePromise, pricePromise] = await Promise.allSettled([

@@ -41,6 +41,7 @@ export abstract class ErrorHandler {
   }
 
   static handle(error: Error, res?: Response): void {
+    console.error(error);
     if (ErrorHandler.isTrustedError(error) && res) {
       ErrorHandler.handleTrustedError(error as AppError, res);
     } else {

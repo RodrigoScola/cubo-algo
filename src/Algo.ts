@@ -1,32 +1,42 @@
+import { MARKETPLACES, MarketplaceInfo, SkuFile, SkuInventoryInfo } from 'wecubedigital';
 import { Ad } from './Ad';
-import { ROTATION_ADS } from './constants';
+import { CURRENT_ACCESS_TOKEN, ROTATION_ADS } from './constants';
+import { BackendApi } from './lib/BackendApi';
 import { connection } from "./server";
-import { AdContext, AdsRotationInfo, MARKETPLACES, SkuFileInfo, SkuInventoryInfo } from "./types/types";
+import { AdContext, AdsRotationInfo, } from "./types/types";
 
 
 
 export async function run() {
+    let marketplaceIds: string[] = [];
+    try {
 
+        await new BackendApi({
+            access_token: CURRENT_ACCESS_TOKEN,
+            marketplaceId: MARKETPLACES.WECODE
+        }).getData<MarketplaceInfo[]>('/marketplace').then(data => {
+            if (!data || !Array.isArray(data)) return;
+            data.forEach(marketplace => {
+                if ('id' in marketplace && typeof marketplace.id === 'string') {
+                    marketplaceIds.push(marketplace.id);
+                }
+            });
+        });
+    } catch (err) {
+        console.log(err);
+    }
 
-
-    //HACK: cant think of anything else so this will do for now
-    //HACK: platforms are the things that the websites that we are going to put ads on  
-    const platforms = [
-        MARKETPLACES.TESTING, MARKETPLACES.WECODE
-    ];
     await connection('ads_rotation').where('id', '>', 0).del();
 
     const promiseMatrix = await Promise.allSettled(
-        platforms.map(async (platform) => {
+        marketplaceIds.map(async (platform) => {
             const query = connection.raw(`
-      select  *, ads.marketplaceId as marketplaceId , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id  where ads.marketplaceId = ${platform} order by ads.id desc
+      select  *, ads.marketplaceId as marketplaceId , products.id as productId, ads.id as id   from ads inner  join interactions on ads.id = interactions.id inner join sku on ads.skuId = sku.id inner join products on sku.productId = products.id  where ads.marketplaceId = "${platform}" order by ads.id desc
         `);
             return await query as AdContext[][];
         }));
     const skuIds: number[] = [];
     const adsMarketplace: Record<MARKETPLACES, AdContext[]> = {
-        "1": [],
-        "2": []
     } as Record<MARKETPLACES, AdContext[]>;
 
     promiseMatrix.forEach(promise => {
@@ -47,13 +57,14 @@ export async function run() {
 
         });
     });
+
     const [inventoryPromise, imagePromise] = await Promise.allSettled([
         connection('sku_inventory').select('*').whereIn('skuId', skuIds),
         connection('sku_file').select('*').whereIn('skuId', skuIds),
     ]);
 
     const inventory: SkuInventoryInfo[] = [];
-    const images: SkuFileInfo[] = [];
+    const images: SkuFile[] = [];
 
     if (inventoryPromise.status === 'fulfilled') {
         inventoryPromise.value.forEach(inventoryItem => {
@@ -103,10 +114,11 @@ export async function run() {
                 images: currentImages
             });
 
+            instance.scoring.add(total);
 
 
-            instance.scoring
-                .add(instance.context.ctr * 100);
+            instance.scoring.add(instance.context.ctr * 100);
+
 
             instance.scoring.calculate();
 
